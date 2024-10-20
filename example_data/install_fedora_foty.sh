@@ -6,7 +6,6 @@ set -e
 # 1. SSH into your newly created VPS as a root user
 
 # 2. Setting Up Caddy on Your VPS
-
 echo -e "\n\033[0;32m### Step 1: Install Caddy - reverse proxy to manage your domains ###\033[0m"
 dnf install -y 'dnf-command(copr)'
 dnf copr enable -y @caddy/caddy
@@ -52,7 +51,6 @@ echo -e "\n\033[0;32m### Step 11: Verify Active Firewall Rules ###\033[0m"
 firewall-cmd --list-all
 
 # 5. User creation and permission setup for Caddy
-
 echo -e "\n\033[0;32m### Step 12: Create user 'mole' for managing Caddy ###\033[0m"
 useradd -m -s /bin/bash mole
 
@@ -71,12 +69,16 @@ cp /root/.ssh/authorized_keys /home/mole/.ssh/authorized_keys
 chown mole:mole /home/mole/.ssh/authorized_keys
 chmod 600 /home/mole/.ssh/authorized_keys
 
-# 7. Grant 'mole' permission to manage the Caddy service without password
-echo -e "\n\033[0;32m### Step 14: Grant mole permission to manage Caddy service ###\033[0m"
+# 7. Set password for the 'mole' user
+echo -e "\n\033[0;32m### Step 14: Set a password for user 'mole' ###\033[0m"
+passwd mole
+
+# 8. Grant 'mole' permission to manage the Caddy service without password
+echo -e "\n\033[0;32m### Step 15: Grant mole permission to manage Caddy service ###\033[0m"
 echo "mole ALL=(root) NOPASSWD: /bin/systemctl start caddy, /bin/systemctl stop caddy, /bin/systemctl restart caddy, /bin/systemctl reload caddy, /bin/systemctl status caddy" | sudo tee /etc/sudoers.d/caddy-management
 
-# 8. Grant 'mole' access to read Caddy logs
-echo -e "\n\033[0;32m### Step 15: Add mole to the systemd-journal group for reading logs ###\033[0m"
+# 9. Grant 'mole' access to read Caddy logs
+echo -e "\n\033[0;32m### Step 16: Add mole to the systemd-journal group for reading logs ###\033[0m"
 usermod -aG systemd-journal mole
 
 echo -e "\n\033[0;32m### We're done! The user 'mole' can now manage the Caddy service, read logs, and use SSH. ###\033[0m"
