@@ -1,4 +1,3 @@
-```
                   ___             
                  /\_ \            
   ___ ___     ___\//\ \      __   
@@ -6,7 +5,7 @@
 /\ \/\ \/\ \/\ \_\ \\_\ \_/\  __/ 
 \ \_\ \_\ \_\ \____//\____\ \____\
  \/_/\/_/\/_/\/___/ \/____/\/____/
-```
+
 # Git Pull Deployment Server Manager ("micro PaaS") Focused on systemd
 
 ## Quickstart
