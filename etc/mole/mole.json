@@ -1,0 +1,13 @@
+{
+ "projects": [
+  {
+   "projectId": "94VkzBYmDxu4skyMcpqw58",
+   "name": "good name",
+   "description": "",
+   "type": "",
+   "repositoryUrl": "test.com",
+   "branch": "main",
+   "deleted": false
+  }
+ ]
+}

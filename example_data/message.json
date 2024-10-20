@@ -1,0 +1,7 @@
+{
+  "gitPullOnRestart": true,
+  "shouldRemove": null,
+  "serviceFiles": [
+    "my-app.service"
+  ]
+}
