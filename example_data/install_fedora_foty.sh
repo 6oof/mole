@@ -62,6 +62,7 @@ echo -e "\n\033[0;32m### Step 13: Copy SSH keys to the 'mole' user ###\033[0m"
 # Create the .ssh directory for 'mole' and set correct permissions
 mkdir -p /home/mole/.ssh
 chmod 700 /home/mole/.ssh
+chown mole:mole /home/mole/.ssh
 
 # Copy the SSH keys (from root or another user, depending on where they're stored)
 cp /root/.ssh/authorized_keys /home/mole/.ssh/authorized_keys
