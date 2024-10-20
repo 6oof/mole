@@ -1,5 +1,6 @@
 {
-  "gitPullOnRestart": true,
+  "type": "static",
+  "gitPullOnDeploy": true,
   "shouldRemove": null,
   "serviceFiles": [
     "my-app.service"

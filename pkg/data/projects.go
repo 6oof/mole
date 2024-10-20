@@ -24,7 +24,6 @@ type Project struct {
 	ProjectId     string `json:"projectId"`
 	Name          string `json:"name"`
 	Description   string `json:"description"`
-	PType         string `json:"type"`
 	RepositoryUrl string `json:"repositoryUrl"`
 	Branch        string `json:"branch"`
 	Deleted       bool   `json:"deleted"`
@@ -145,11 +144,9 @@ func AddProject(newProject Project) (string, error) {
 
 }
 
-func EditProject(proId, name, desc, branch, pType string) error {
-	newName := name
+func EditProject(proId, desc, branch string) error {
 	newDesc := desc
 	newBranch := branch
-	newPType := pType
 
 	p, err := readProjectsFromFile()
 	if err != nil {
@@ -162,17 +159,11 @@ func EditProject(proId, name, desc, branch, pType string) error {
 		if proId == pro.ProjectId {
 			found = true
 
-			if newName != "" {
-				p.Projects[i].Name = newName
-			}
 			if newDesc != "" {
 				p.Projects[i].Description = newDesc
 			}
 			if newBranch != "" {
 				p.Projects[i].Branch = newBranch
-			}
-			if newPType != "" {
-				p.Projects[i].PType = newPType
 			}
 
 		}

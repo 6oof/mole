@@ -5,6 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	RootCmd.Root().CompletionOptions.DisableDefaultCmd = true
+}
+
 var RootCmd = &cobra.Command{
 	Use:   "mole",
 	Short: "micro-PaaS focused around systemd",

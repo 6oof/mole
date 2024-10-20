@@ -1,0 +1,12 @@
+
+# Serve a static site on http://localhost
+:8080 {
+    root * /var/www/html  # Serve files from this directory
+    file_server  # Enable static file server
+}
+
+# Another server block serving different content
+localhost:8081 {
+    root * /var/www/admin
+    file_server  # Enable static file server for this directory
+}

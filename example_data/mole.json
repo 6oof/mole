@@ -4,7 +4,6 @@
       "projectId": "my_project_001",
       "name": "My WordPress Project",
       "description": "A WordPress project deployed to PAS.",
-      "type": "podman",
       "repositoryUrl": "https://github.com/username/my-wordpress-repo.git",
       "branch": "main",
       "deleted": false
@@ -13,7 +12,6 @@
       "projectId": "my_project_002",
       "name": "My Next Project",
       "description": "Description of the next project.",
-      "type": "static",
       "repositoryUrl": "https://github.com/username/my-next-project.git",
       "branch": "develop",
       "deleted": false
