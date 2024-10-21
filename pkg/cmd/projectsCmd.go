@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/6oof/mole/pkg/data"
+	"github.com/6oof/mole/pkg/execs"
 	"github.com/spf13/cobra"
 )
 
@@ -135,22 +134,15 @@ var editProjectCmd = &cobra.Command{
 	},
 }
 
-// TODO: find the right project folder to do this in
 var projectEnvCmd = &cobra.Command{
-	Use:   "env [name/id]",
+	Use:   "dotenv [name/id]",
 	Short: "Edit project .env",
 	Long:  `Env opens the project's .env file in vi.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		c := exec.Command("nano", ".env")
-		c.Stdin = os.Stdin
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-
-		// Run the command and handle any error
-		err := c.Run()
+		err := execs.FindAndEditEnv(strings.Join(args, " "))
 		if err != nil {
-			fmt.Println("Error running vi:", err.Error())
+			fmt.Println(err.Error())
 		}
 	},
 }
