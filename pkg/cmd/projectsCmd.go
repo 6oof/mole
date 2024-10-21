@@ -65,11 +65,15 @@ var findProjectCmd = &cobra.Command{
 	The method is NOT case sensitive.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(data.FindProject(strings.Join(args, " ")))
+		p, err := data.FindProject(strings.Join(args, " "))
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println(p.Stringify())
+		}
 	},
 }
 
-// TODO: This sould imidiately pull the project down
 var addProjectCmd = &cobra.Command{
 	Use:   "add [name]",
 	Short: "Add a new project",
@@ -91,11 +95,11 @@ var addProjectCmd = &cobra.Command{
 			Branch:        branch,
 		}
 
-		id, err := data.AddProject(np)
+		err := data.CreateProject(np)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			fmt.Println("New project added with ID: " + id)
+			fmt.Println("New project successfully added")
 		}
 	},
 }

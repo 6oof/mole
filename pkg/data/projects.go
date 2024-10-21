@@ -1,9 +1,11 @@
 package data
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"os"
+	"os/exec"
 	"path"
 	"strconv"
 	"strings"
@@ -13,8 +15,8 @@ import (
 	"github.com/lithammer/shortuuid/v4"
 )
 
-var moleJson = path.Join(consts.BasePath, "/etc/mole/mole.json")
-var moleLock = path.Join(consts.BasePath, "/etc/mole/mole.lock")
+var moleJson = path.Join(consts.BasePath, "mole.json")
+var moleLock = path.Join(consts.BasePath, "mole.lock")
 
 type Projects struct {
 	Projects []Project `json:"projects"`
@@ -73,27 +75,25 @@ func ListProjects() string {
 	return p.Stringify()
 }
 
-func FindProject(searchTerm string) string {
+func FindProject(searchTerm string) (Project, error) {
 	p, err := readProjectsFromFile()
 	if err != nil {
-		return err.Error()
+		return Project{}, err
 	}
 
 	var fp Project
 
 	for _, pro := range p.Projects {
-		if strings.ToLower(pro.Name) == strings.ToLower(searchTerm) {
-			fp = pro
-		} else if pro.ProjectId == searchTerm {
+		if strings.ToLower(pro.Name) == strings.ToLower(searchTerm) || pro.ProjectId == searchTerm {
 			fp = pro
 		}
 	}
 
-	if fp.ProjectId == "" {
-		return "Sorry, no project was found!\nYou can use the list command to see all projects"
+	if fp == (Project{}) {
+		return fp, errors.New("Sorry, no project was found!\nYou can use the list command to see all projects")
 	}
 
-	return fp.Stringify()
+	return fp, nil
 }
 
 func (p Projects) saveProjectsToFile() error {
@@ -110,10 +110,10 @@ func (p Projects) saveProjectsToFile() error {
 	return nil
 }
 
-func AddProject(newProject Project) (string, error) {
+func addProject(newProject Project) error {
 	p, err := readProjectsFromFile()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	fileLock := flock.New(moleLock)
@@ -121,7 +121,7 @@ func AddProject(newProject Project) (string, error) {
 	defer fileLock.Unlock()
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if locked {
@@ -134,17 +134,88 @@ func AddProject(newProject Project) (string, error) {
 		err = p.saveProjectsToFile()
 
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		return newProject.ProjectId, nil
+		return nil
 	} else {
-		return "", errors.New("Someone else is trying to work with the project store, please try again")
+		return errors.New("Someone else is trying to work with the project store, please try again")
 	}
 
 }
 
-func EditProject(proId, desc, branch string) error {
+func cloneProject(project Project) error {
+	clonePath := path.Join(consts.BasePath, "projects", project.Name)
+
+	var stErr bytes.Buffer
+
+	c := exec.Command("git", "clone")
+
+	c = exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryUrl, clonePath)
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = &stErr
+
+	err := c.Run()
+	if err != nil {
+		return errors.New(stErr.String())
+	}
+	return nil
+
+}
+
+func checkEnvGitignore(project Project) error {
+	clonePath := path.Join(consts.BasePath, "projects", project.Name, ".gitignore")
+
+	gi, err := os.ReadFile(clonePath)
+	if err != nil {
+		return errors.New(`Gitignore is missing from this project. This is mandatory for mole to work properly.`)
+	}
+
+	if !containsEnvEntry(string(gi)) {
+		return errors.New(".gitignore does not include an entry for '.env'. This is mandatory for mole to work properly")
+	}
+
+	return nil
+}
+
+func containsEnvEntry(content string) bool {
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == ".env" {
+			return true
+		}
+	}
+	return false
+}
+
+func CreateProject(newProject Project) error {
+
+	clonePath := path.Join(consts.BasePath, "projects", newProject.Name)
+
+	err := cloneProject(newProject)
+	if err != nil {
+		return err
+	}
+
+	err = checkEnvGitignore(newProject)
+	if err != nil {
+		os.RemoveAll(clonePath)
+		return err
+	}
+
+	err = addProject(newProject)
+	if err != nil {
+		os.RemoveAll(clonePath)
+	}
+
+	return err
+
+}
+
+// NOI stands for name or Id
+func EditProject(proNOI, desc, branch string) error {
 	newDesc := desc
 	newBranch := branch
 
@@ -156,7 +227,7 @@ func EditProject(proId, desc, branch string) error {
 	found := false
 
 	for i, pro := range p.Projects {
-		if proId == pro.ProjectId {
+		if proNOI == pro.ProjectId || proNOI == pro.Name {
 			found = true
 
 			if newDesc != "" {
@@ -170,7 +241,7 @@ func EditProject(proId, desc, branch string) error {
 	}
 
 	if !found {
-		return errors.New("Project with ID " + proId + " not found")
+		return errors.New("Project with ID " + proNOI + " not found")
 	}
 
 	err = p.saveProjectsToFile()
