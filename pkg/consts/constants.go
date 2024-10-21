@@ -2,4 +2,4 @@ package consts
 
 const Version = "0.0.0"
 
-var BasePath string = "./"
+var BasePath string = "./false_location"
