@@ -149,9 +149,7 @@ func cloneProject(project Project) error {
 
 	var stErr bytes.Buffer
 
-	c := exec.Command("git", "clone")
-
-	c = exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryUrl, clonePath)
+	c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryUrl, clonePath)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = &stErr

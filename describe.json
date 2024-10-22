@@ -1,0 +1,6 @@
+{
+  "type": "systemd",
+  "startables": [
+    "my-app"
+  ]
+}

@@ -12,7 +12,7 @@
 
 tbd
 
-## Detailed setup
+## Manual setup
 
 ### Prerequisites
 

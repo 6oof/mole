@@ -103,10 +103,11 @@ var addProjectCmd = &cobra.Command{
 	},
 }
 
+// TODO: bring the project down before you delete it. Delete the domain partial before you delete it
 var deleteProjectCmd = &cobra.Command{
 	Use:   "delete [name/id]",
-	Short: "Delete a project by ID",
-	Long:  `Delete is for finding a project by id and deleting it.`,
+	Short: "Delete a project by name or ID",
+	Long:  `Delete is for finding a project by id or name and deleting it.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := data.DeleteProject(strings.Join(args, " "))
@@ -120,9 +121,9 @@ var deleteProjectCmd = &cobra.Command{
 
 var editProjectCmd = &cobra.Command{
 	Use:   "edit [name/id]",
-	Short: "Edit a project by ID",
-	Long: `Edit is for finding a project by id and editing its properties.
-	You won't be able to change it's repository or name.`,
+	Short: "Edit a project by name or ID",
+	Long: `Edit is for finding a project by id or name and editing its properties.
+	You won't be able to change it's repository, id, or name.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := data.EditProject(strings.Join(args, ""), description, branch)
@@ -137,7 +138,7 @@ var editProjectCmd = &cobra.Command{
 var projectEnvCmd = &cobra.Command{
 	Use:   "dotenv [name/id]",
 	Short: "Edit project .env",
-	Long:  `Env opens the project's .env file in vi.`,
+	Long:  `Env opens the project's .env file in nano.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := execs.FindAndEditEnv(strings.Join(args, " "))
