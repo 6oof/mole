@@ -3,15 +3,39 @@ package cmd
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
+	"github.com/6oof/mole/pkg/data"
 	"github.com/spf13/cobra"
 )
 
+var (
+	domain   string
+	port     string
+	location string
+)
+
+// TODO: we need to validate inputs and flags to not make an unrecoverable mess
 func init() {
 	RootCmd.AddCommand(domainsRootCmd)
 
 	domainsRootCmd.AddCommand(listTakenPortsCmd)
 	domainsRootCmd.AddCommand(reloadCaddyCmd)
+	domainsRootCmd.AddCommand(setupCaddyCmd)
+	domainsRootCmd.AddCommand(deleteCaddyCmd)
+
+	addProxyCaddyCmd.Flags().StringVarP(&domain, "domain", "d", "", "Domain *required")
+	addProxyCaddyCmd.MarkFlagRequired("domain")
+	addProxyCaddyCmd.Flags().StringVarP(&port, "port", "p", "", "Port *required")
+	addProxyCaddyCmd.MarkFlagRequired("port")
+	addCaddyCmd.AddCommand(addProxyCaddyCmd)
+
+	addStaticCaddyCmd.Flags().StringVarP(&domain, "domain", "d", "", "Domain *required")
+	addStaticCaddyCmd.MarkFlagRequired("domain")
+	addStaticCaddyCmd.Flags().StringVarP(&location, "location", "l", "", "Location *required")
+	addCaddyCmd.AddCommand(addStaticCaddyCmd)
+
+	domainsRootCmd.AddCommand(addCaddyCmd)
 }
 
 var domainsRootCmd = &cobra.Command{
@@ -19,6 +43,25 @@ var domainsRootCmd = &cobra.Command{
 	Short: "Interact with caddy reverse proxy",
 	Long: `Interact with caddy, read caddy logs, list all taken ports
 	and more...`,
+}
+
+var setupCaddyCmd = &cobra.Command{
+	Use:   "setup [email]",
+	Short: "Setup support for domains",
+	Long: `Setup creates the main caddy config.
+	This command will overwrite the existing config.`,
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		e := strings.Join(args, " ")
+
+		err := data.SetupDomains(e)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("Domain setup done. ssl issues reported to: " + e)
+		}
+
+	},
 }
 
 var listTakenPortsCmd = &cobra.Command{
@@ -35,29 +78,90 @@ var listTakenPortsCmd = &cobra.Command{
 	},
 }
 
-// TODO: figure out where to put the main caddy config and validate that to get the total validation picture
 var reloadCaddyCmd = &cobra.Command{
 	Use:   "reload",
 	Short: "Reload caddy config",
 	Long: `Reload validates the caddy config
 	and realoads the caddy sevice if everything is correct.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c := exec.Command("sh", "-c", "caddy validate --config example_data/Caddyfile")
+		c := exec.Command("sh", "-c", "caddy validate --config /home/mole/caddy/main.caddy")
+		co, _ := c.CombinedOutput()
+
+		//TODO: reload caddy service
+
+		fmt.Println(string(co))
+	},
+}
+
+var validateCaddyCmd = &cobra.Command{
+	Use:   "validate",
+	Short: "Validate caddy config",
+	Long:  `Validate validates the caddy config`,
+	Run: func(cmd *cobra.Command, args []string) {
+		c := exec.Command("sh", "-c", "caddy validate --config /home/mole/caddy/main.caddy")
 		co, _ := c.CombinedOutput()
 
 		fmt.Println(string(co))
 	},
 }
 
-// TODO: figure out where to put the main caddy config and validate that to get the total validation picture
-var validateCaddyCmd = &cobra.Command{
-	Use:   "validate",
-	Short: "Validate caddy config",
-	Long:  `Validate validates the caddy config`,
-	Run: func(cmd *cobra.Command, args []string) {
-		c := exec.Command("sh", "-c", "caddy validate --config example_data/Caddyfile")
-		co, _ := c.CombinedOutput()
+var addCaddyCmd = &cobra.Command{
+	Use:   "add",
+	Short: "Add a domain to caddy config",
+	Long: `Add supports adding a reverse proxy
+	or static file server domains with automatic tls`,
+}
 
-		fmt.Println(string(co))
+var addProxyCaddyCmd = &cobra.Command{
+	Use:   "proxy [project name/id]",
+	Short: "Add a reverse proxy",
+	Long:  `Add supports adding a reverse proxy partial config.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		a := strings.Join(args, " ")
+
+		err := data.AddDomainProxy(a, domain, port)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("Reverse proxy added for: " + a)
+		}
+
+	},
+}
+
+var addStaticCaddyCmd = &cobra.Command{
+	Use:   "static [project name/id]",
+	Short: "Add a static route",
+	Long:  `Add supports adding a static fileserver partial config.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		a := strings.Join(args, " ")
+
+		err := data.AddDomainStatic(a, domain, location)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("File server added added for: " + a)
+		}
+
+	},
+}
+
+var deleteCaddyCmd = &cobra.Command{
+	Use:   "delete [project name]",
+	Short: "Delete a caddy partial",
+	Long:  `Delete trys to find a caddy partial and deletes it.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		a := strings.Join(args, " ")
+
+		err := data.DeleteProjectDomain(a)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("Caddy partial config deleted: " + a + ".caddy")
+		}
+
 	},
 }

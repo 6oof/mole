@@ -104,7 +104,7 @@ var addProjectCmd = &cobra.Command{
 }
 
 var deleteProjectCmd = &cobra.Command{
-	Use:   "delete [project id]",
+	Use:   "delete [name/id]",
 	Short: "Delete a project by ID",
 	Long:  `Delete is for finding a project by id and deleting it.`,
 	Args:  cobra.ExactArgs(1),
@@ -119,7 +119,7 @@ var deleteProjectCmd = &cobra.Command{
 }
 
 var editProjectCmd = &cobra.Command{
-	Use:   "edit [project id]",
+	Use:   "edit [name/id]",
 	Short: "Edit a project by ID",
 	Long: `Edit is for finding a project by id and editing its properties.
 	You won't be able to change it's repository or name.`,

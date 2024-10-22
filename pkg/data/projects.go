@@ -272,7 +272,6 @@ func DeleteProject(proId string) error {
 	err = p.saveProjectsToFile()
 
 	return err
-
 }
 
 func (ps Project) Stringify() string {

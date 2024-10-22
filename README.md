@@ -45,35 +45,11 @@ dnf install caddy
    sudo vi /etc/caddy/Caddyfile
    ```
 
-2. **Set Up the Caddyfile**: Replace the contents with the following (Make sure to replace the example email):
+2. **Set Up the Caddyfile**: Replace the contents with the following:
 
    ```caddyfile
-   {
-       email your_email@example.com  # Replace with your email for TLS notifications
-       servers {
-           protocol {
-               experimental_http3
-           }
-       }
-   }
-
-   # Enable automatic HTTPS and request compression globally
-   tls {
-       on_demand  # Use on-demand TLS certificate provisioning
-   }
-
-   header {
-       # Enable gzip and brotli compression
-       Accept-Encoding gzip, br
-       Content-Type * gzip
-       Content-Type * brotli
-   }
-
-   # Include domain configurations from partials
-   import ./partials/*.caddy
+   import /home/mole/caddy/main.caddy
    ```
-
-   - Replace `your_email@example.com` with your actual email address.
 
 ### Step 3: Enable and Start Caddy Service
 
