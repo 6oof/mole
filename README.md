@@ -74,8 +74,6 @@ You should see output indicating that the Caddy service is active and running.
 
 - [Caddy Fedora Linux Installation Documentation](https://caddyserver.com/docs/install#fedora-redhat-centos)
 
----
-
 ### 3. Install Podman
 
 #### Step 1: Install Podman
@@ -93,8 +91,6 @@ Check that Podman is installed correctly:
 ```bash
 podman --version
 ```
-
----
 
 ### 4. Setting Up a Firewall (firewalld)
 
@@ -149,9 +145,7 @@ sudo firewall-cmd --list-all
 
 This should show that SSH, HTTP, and HTTPS are allowed for incoming traffic.
 
---- 
-
-### Important Files Created
+## Important Files Created
 
 - `mole.json`: Placed in `/etc/mole/mole.json`.
 - Project repositories will be pulled to `/var/mole/{projectId}/`.
