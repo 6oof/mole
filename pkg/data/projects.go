@@ -9,6 +9,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/gofrs/flock"
@@ -188,6 +189,76 @@ func containsEnvEntry(content string) bool {
 	return false
 }
 
+func ensureProjectVolume(project Project) error {
+	volumePath := path.Join(consts.BasePath, "volumes", project.Name)
+
+	err := os.MkdirAll(volumePath, 0755)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: instead of describe.json we should just read everything from .env. that makes way more sense
+type baseEnvData struct {
+	PType      string
+	EnvPath    string
+	VolumePath string
+	Services   string
+	PName      string
+}
+
+func createProjectBaseEnv(project Project, pType string) error {
+
+	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
+# DO NOT DELETE OR MODIFY THIS SECTION.
+# This configuration is necessary for the project to work properly.
+# Static path to this file on mole managed servers is:
+# {{.EnvPath}}
+
+# Available types: static, podman, systemd
+P_TYPE={{.PType}}
+
+# Volume path to be used in podman quadlets
+VOLUME_PATH={{.VolumePath}}
+
+# Comma separated list of services to start ("service-1,service-2").
+SERVICES={{.Services}}
+
+# User-defined environment variables can be added below.
+# Add your own variables here:`
+
+	be := baseEnvData{
+		PType:      pType,
+		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
+		VolumePath: "/home/mole/volumes/" + project.Name,
+		Services:   "",
+		PName:      project.Name,
+	}
+
+	tmpl, err := template.New("env").Parse(domainTemplate)
+	if err != nil {
+		return err
+	}
+
+	var ft bytes.Buffer
+
+	err = tmpl.Execute(&ft, be)
+	if err != nil {
+		return err
+	}
+
+	efp := path.Join(consts.BasePath, "projects", project.Name, ".env")
+
+	err = os.WriteFile(efp, ft.Bytes(), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateProject(newProject Project) error {
 
 	clonePath := path.Join(consts.BasePath, "projects", newProject.Name)
@@ -198,6 +269,18 @@ func CreateProject(newProject Project) error {
 	}
 
 	err = checkEnvGitignore(newProject)
+	if err != nil {
+		os.RemoveAll(clonePath)
+		return err
+	}
+
+	err = ensureProjectVolume(newProject)
+	if err != nil {
+		os.RemoveAll(clonePath)
+		return err
+	}
+
+	err = createProjectBaseEnv(newProject, "")
 	if err != nil {
 		os.RemoveAll(clonePath)
 		return err

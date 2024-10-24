@@ -172,6 +172,21 @@ func LinkServices(projectNOI, sType string) error {
 		}
 
 		fmt.Printf("Linked %s to %s\n", path, destPath)
+
+		dropInDir := filepath.Join(destDir, "mole-"+p.Name+"-"+info.Name()+".d")
+		err = os.MkdirAll(dropInDir, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create drop-in directory %s: %v", dropInDir, err)
+		}
+
+		dropInFile := filepath.Join(dropInDir, "override.conf")
+		dropInContent := fmt.Sprintf("[Service]\nEnvironment=\"MOLE_PROJECT_NAME=%s\"\n\n[Container]\nEnvironment=\"MOLE_PROJECT_NAME=%s\"\n\n[Build]\nEnvironment=\"MOLE_PROJECT_NAME=%s\"\n", p.Name, p.Name, p.Name)
+		err = os.WriteFile(dropInFile, []byte(dropInContent), 0644)
+		if err != nil {
+			return fmt.Errorf("failed to create drop-in file %s: %v", dropInFile, err)
+		}
+		fmt.Printf("Created drop-in file %s\n", dropInFile)
+
 		return nil
 	})
 
@@ -199,16 +214,16 @@ func UnlinkServices(projectNOI string) error {
 				return fmt.Errorf("failed to walk through directory %s: %v", destDir, err)
 			}
 
-			if info.IsDir() {
-				return nil
-			}
-
 			if strings.Contains(info.Name(), "mole-"+p.Name) {
-				err := os.Remove(path)
+				err := os.RemoveAll(path)
 				if err != nil {
 					return fmt.Errorf("failed to remove service %s: %v", path, err)
 				}
 				fmt.Printf("Removed service link %s\n", path)
+
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
 			}
 
 			return nil

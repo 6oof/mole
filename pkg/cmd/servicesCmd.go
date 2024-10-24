@@ -8,10 +8,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: add instructions and validation for types
 var (
 	pager                                                    bool
 	pType                                                    string
 	serviceStart, serviceStop, serviceEnable, serviceDisable bool
+	hardRerload                                              bool
 )
 
 func init() {
@@ -32,6 +34,9 @@ func init() {
 	serviceActionCmd.Flags().BoolVarP(&serviceStop, "stop", "", false, "Executes service stop command")
 	serviceActionCmd.Flags().BoolVarP(&serviceEnable, "enable", "", false, "Executes service enable command")
 	serviceActionCmd.Flags().BoolVarP(&serviceDisable, "disable", "", false, "Executes service disable command")
+
+	servicesRootCmd.AddCommand(restartServicesCmd)
+	restartServicesCmd.Flags().BoolVarP(&hardRerload, "hard", "h", false, "Stop and start the service insted of reloading")
 }
 
 var servicesRootCmd = &cobra.Command{
@@ -70,7 +75,6 @@ var serviceActionCmd = &cobra.Command{
 			fmt.Println("at least one action flag must be set")
 		}
 
-		//TODO: figure out if this is the best order
 		if serviceStart {
 			err := execs.StartService(strings.Join(args, ""))
 			if err != nil {
@@ -99,6 +103,27 @@ var serviceActionCmd = &cobra.Command{
 				fmt.Println(err.Error())
 			}
 		}
+	},
+}
+
+var restartServicesCmd = &cobra.Command{
+	Use:   "restart [service name]",
+	Short: "Restart service",
+	Long:  `Restart reloads systemd daemon and restarts a service`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		if hardRerload {
+			err := execs.RestartServiceHard(strings.Join(args, ""))
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		} else {
+			err := execs.RestartService(strings.Join(args, ""))
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}
+
 	},
 }
 

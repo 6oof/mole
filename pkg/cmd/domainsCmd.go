@@ -86,10 +86,16 @@ var reloadCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		c := exec.Command("sh", "-c", "caddy validate --config /home/mole/caddy/main.caddy")
 		co, _ := c.CombinedOutput()
-
-		//TODO: reload caddy service
-
 		fmt.Println(string(co))
+
+		reloadCmd := exec.Command("sh", "-c", "systemctl --user reload caddy")
+		reloadOut, err := reloadCmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("Failed to reload caddy service: %v\n", err)
+			return
+		}
+		fmt.Println("Caddy service reloaded successfully.")
+		fmt.Println(string(reloadOut))
 	},
 }
 
@@ -142,7 +148,7 @@ var addStaticCaddyCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			fmt.Println("File server added added for: " + a)
+			fmt.Println("Static server created for: " + a)
 		}
 
 	},
