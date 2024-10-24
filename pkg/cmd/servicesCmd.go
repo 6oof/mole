@@ -36,7 +36,7 @@ func init() {
 	serviceActionCmd.Flags().BoolVarP(&serviceDisable, "disable", "", false, "Executes service disable command")
 
 	servicesRootCmd.AddCommand(restartServicesCmd)
-	restartServicesCmd.Flags().BoolVarP(&hardRerload, "hard", "h", false, "Stop and start the service insted of reloading")
+	restartServicesCmd.Flags().BoolVarP(&hardRerload, "full", "f", false, "Stop and start the service insted of reloading")
 }
 
 var servicesRootCmd = &cobra.Command{
