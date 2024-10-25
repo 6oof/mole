@@ -10,13 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	repository  string
-	description string
-	branch      string
-	confirm     bool
-)
-
 func init() {
 	RootCmd.AddCommand(projectsRootCmd)
 
@@ -24,18 +17,18 @@ func init() {
 	projectsRootCmd.AddCommand(findProjectCmd)
 	projectsRootCmd.AddCommand(projectEnvCmd)
 
-	addProjectCmd.Flags().StringVarP(&repository, "repository", "r", "", "Repository URL *required")
+	addProjectCmd.Flags().StringVarP(&repositoryFlag, "repository", "r", "", "Repository URL *required")
 	addProjectCmd.MarkFlagRequired("repository")
-	addProjectCmd.Flags().StringVarP(&branch, "branch", "b", "", "Branch *required")
+	addProjectCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch *required")
 	addProjectCmd.MarkFlagRequired("branch")
-	addProjectCmd.Flags().StringVarP(&description, "description", "d", "", "Description")
+	addProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Description")
 	projectsRootCmd.AddCommand(addProjectCmd)
 
-	editProjectCmd.Flags().StringVarP(&description, "description", "d", "", "Change description")
-	editProjectCmd.Flags().StringVarP(&branch, "branch", "b", "", "Change branch")
+	editProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Change description")
+	editProjectCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Change branch")
 	projectsRootCmd.AddCommand(editProjectCmd)
 
-	deleteProjectCmd.Flags().BoolVarP(&confirm, "confirm", "y", false, "Confirms intent of delition *required")
+	deleteProjectCmd.Flags().BoolVarP(&confirmFlag, "confirm", "y", false, "Confirms intent of delition *required")
 	deleteProjectCmd.MarkFlagRequired("confirm")
 	projectsRootCmd.AddCommand(deleteProjectCmd)
 }
@@ -89,9 +82,9 @@ var addProjectCmd = &cobra.Command{
 
 		np := data.Project{
 			Name:          projectName,
-			Description:   description,
-			RepositoryUrl: repository,
-			Branch:        branch,
+			Description:   descriptionFlag,
+			RepositoryUrl: repositoryFlag,
+			Branch:        branchFlag,
 		}
 
 		err := data.CreateProject(np)
@@ -126,7 +119,7 @@ var editProjectCmd = &cobra.Command{
 	You won't be able to change it's repository, id, or name.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := data.EditProject(strings.Join(args, ""), description, branch)
+		err := data.EditProject(strings.Join(args, ""), descriptionFlag, branchFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {

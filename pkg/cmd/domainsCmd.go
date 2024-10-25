@@ -9,12 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	domain   string
-	port     string
-	location string
-)
-
 // TODO: we need to validate inputs and flags to not make an unrecoverable mess
 func init() {
 	RootCmd.AddCommand(domainsRootCmd)
@@ -24,15 +18,15 @@ func init() {
 	domainsRootCmd.AddCommand(setupCaddyCmd)
 	domainsRootCmd.AddCommand(deleteCaddyCmd)
 
-	addProxyCaddyCmd.Flags().StringVarP(&domain, "domain", "d", "", "Domain *required")
+	addProxyCaddyCmd.Flags().StringVarP(&domainFlag, "domain", "d", "", "Domain *required")
 	addProxyCaddyCmd.MarkFlagRequired("domain")
-	addProxyCaddyCmd.Flags().StringVarP(&port, "port", "p", "", "Port *required")
+	addProxyCaddyCmd.Flags().StringVarP(&portFlag, "port", "p", "", "Port *required")
 	addProxyCaddyCmd.MarkFlagRequired("port")
 	addCaddyCmd.AddCommand(addProxyCaddyCmd)
 
-	addStaticCaddyCmd.Flags().StringVarP(&domain, "domain", "d", "", "Domain *required")
+	addStaticCaddyCmd.Flags().StringVarP(&domainFlag, "domain", "d", "", "Domain *required")
 	addStaticCaddyCmd.MarkFlagRequired("domain")
-	addStaticCaddyCmd.Flags().StringVarP(&location, "location", "l", "", "Location *required")
+	addStaticCaddyCmd.Flags().StringVarP(&locationFlag, "location", "l", "", "Location *required")
 	addCaddyCmd.AddCommand(addStaticCaddyCmd)
 
 	domainsRootCmd.AddCommand(addCaddyCmd)
@@ -126,7 +120,7 @@ var addProxyCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 
-		err := data.AddDomainProxy(a, domain, port)
+		err := data.AddDomainProxy(a, domainFlag, portFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -144,7 +138,7 @@ var addStaticCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 
-		err := data.AddDomainStatic(a, domain, location)
+		err := data.AddDomainStatic(a, domainFlag, locationFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {

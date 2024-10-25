@@ -12,11 +12,6 @@ import (
 // TODO: We should probably split execs and "actions" they perform
 // TODO: add instructions and validation for types
 // TODO: Errors and prints should be handled at the exec level so we can double up later for json
-var (
-	pType                                                    string
-	serviceStart, serviceStop, serviceEnable, serviceDisable bool
-	hardRerload                                              bool
-)
 
 func init() {
 	RootCmd.AddCommand(servicesRootCmd)
@@ -27,17 +22,17 @@ func init() {
 	servicesRootCmd.AddCommand(listServicesCmd)
 
 	servicesRootCmd.AddCommand(linkProjectServicesCmd)
-	linkProjectServicesCmd.Flags().StringVarP(&pType, "type", "t", "", "Type of services to be linked")
+	linkProjectServicesCmd.Flags().StringVarP(&pTypeFlag, "type", "t", "", "Type of services to be linked")
 	linkProjectServicesCmd.MarkFlagRequired("type")
 
 	servicesRootCmd.AddCommand(serviceActionCmd)
-	serviceActionCmd.Flags().BoolVarP(&serviceStart, "start", "", false, "Executes service start command")
-	serviceActionCmd.Flags().BoolVarP(&serviceStop, "stop", "", false, "Executes service stop command")
-	serviceActionCmd.Flags().BoolVarP(&serviceEnable, "enable", "", false, "Executes service enable command")
-	serviceActionCmd.Flags().BoolVarP(&serviceDisable, "disable", "", false, "Executes service disable command")
+	serviceActionCmd.Flags().BoolVarP(&serviceStartFlag, "start", "", false, "Executes service start command")
+	serviceActionCmd.Flags().BoolVarP(&serviceStopFlag, "stop", "", false, "Executes service stop command")
+	serviceActionCmd.Flags().BoolVarP(&serviceEnableFlag, "enable", "", false, "Executes service enable command")
+	serviceActionCmd.Flags().BoolVarP(&serviceDisableFlag, "disable", "", false, "Executes service disable command")
 
 	servicesRootCmd.AddCommand(restartServicesCmd)
-	restartServicesCmd.Flags().BoolVarP(&hardRerload, "full", "f", false, "Stop and start the service insted of reloading")
+	restartServicesCmd.Flags().BoolVarP(&hardRerloadFlag, "full", "f", false, "Stop and start the service insted of reloading")
 }
 
 var servicesRootCmd = &cobra.Command{
@@ -73,25 +68,25 @@ var serviceActionCmd = &cobra.Command{
 	Long:  `Action is for starting, stopping, enabling, disabling services.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if !serviceDisable && !serviceEnable && !serviceStart && !serviceStop {
+		if !serviceDisableFlag && !serviceEnableFlag && !serviceStartFlag && !serviceStopFlag {
 			fmt.Println("at least one action flag must be set")
 		}
 
-		if serviceStart {
+		if serviceStartFlag {
 			err := execs.StartService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		}
 
-		if serviceEnable {
+		if serviceEnableFlag {
 			err := execs.EnableService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		}
 
-		if serviceStop {
+		if serviceStopFlag {
 			err := execs.StopService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
@@ -99,7 +94,7 @@ var serviceActionCmd = &cobra.Command{
 
 		}
 
-		if serviceDisable {
+		if serviceDisableFlag {
 			err := execs.DisableService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
@@ -115,7 +110,7 @@ var restartServicesCmd = &cobra.Command{
 	Long:  `Restart reloads systemd daemon and restarts a service`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if hardRerload {
+		if hardRerloadFlag {
 			err := execs.RestartService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
@@ -152,7 +147,7 @@ var linkProjectServicesCmd = &cobra.Command{
 	or ~/.config/systemd/user if type is "systemd"`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := execs.LinkServices(strings.Join(args, ""), pType)
+		err := execs.LinkServices(strings.Join(args, ""), pTypeFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
