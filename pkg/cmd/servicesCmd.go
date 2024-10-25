@@ -62,7 +62,7 @@ var reloadServicesCmd = &cobra.Command{
 	Short: "Reload service unit files",
 	Long:  `Reload service unit files. This will register any unit file changes.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		execs.ReloadServices()
+		execs.ReloadServicesDaemon()
 	},
 }
 
@@ -116,12 +116,12 @@ var restartServicesCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if hardRerload {
-			err := execs.RestartServiceHard(strings.Join(args, ""))
+			err := execs.RestartService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		} else {
-			err := execs.RestartService(strings.Join(args, ""))
+			err := execs.ReloadService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}

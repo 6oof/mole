@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -14,31 +13,25 @@ import (
 	"github.com/6oof/mole/pkg/helpers"
 )
 
-func ListServices() {
-	// cmd := exec.Command("sh", "-c", "systemctl --user list-units --type=service --all --no-legend --plain --no-pager | grep mole")
-	//
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	//
-	// cmd.Run()
-
-	st := "mole"
+func ListServices() error {
+	filterString := "mole"
 
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
 		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
 
 	units, err := conn.ListUnitsContext(context.Background())
 	if err != nil {
 		fmt.Printf("Failed to list units: %v", err)
+		return err
 	}
 
 	var output strings.Builder
 	for _, unit := range units {
-		if strings.Contains(unit.Name, st) {
+		if strings.Contains(unit.Name, filterString) {
 			output.WriteString(fmt.Sprintf("%s - %s\n  LoadState: %s, ActiveState: %s\n",
 				unit.Name, unit.Description, unit.LoadState, unit.ActiveState))
 		}
@@ -47,105 +40,190 @@ func ListServices() {
 	if output.Len() > 0 {
 		fmt.Print(output.String())
 	} else {
-		fmt.Println("No services matching " + st + " found.")
+		fmt.Println("No services matching " + filterString + " found.")
 	}
+
+	return nil
 
 }
 
 func EnableService(serviceName string) error {
-	cmd := exec.Command("systemctl", "--user", "enable", serviceName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	// cmd := exec.Command("systemctl", "--user", "enable", serviceName)
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to enable service %s: %v", serviceName, err)
+	// }
+	// return nil
 
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
 	if err != nil {
-		return fmt.Errorf("failed to enable service %s: %v", serviceName, err)
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
+
+	_, _, err = conn.EnableUnitFilesContext(context.Background(), []string{serviceName}, false, true)
+	if err != nil {
+		fmt.Printf("Failed to enable service %s: %v", serviceName, err)
+		return err
+	}
+
 	return nil
 }
 
 func DisableService(serviceName string) error {
-	cmd := exec.Command("systemctl", "--user", "disable", serviceName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	// cmd := exec.Command("systemctl", "--user", "disable", serviceName)
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to disable service %s: %v", serviceName, err)
+	// }
 
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
 	if err != nil {
-		return fmt.Errorf("failed to disable service %s: %v", serviceName, err)
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
+
+	_, err = conn.DisableUnitFilesContext(context.Background(), []string{serviceName}, false)
+	if err != nil {
+		fmt.Printf("Failed to enable service %s: %v", serviceName, err)
+		return err
+	}
+
 	return nil
 }
 
 func StartService(serviceName string) error {
-	cmd := exec.Command("systemctl", "--user", "start", serviceName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	// cmd := exec.Command("systemctl", "--user", "start", serviceName)
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to start service %s: %v", serviceName, err)
+	// }
 
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
 	if err != nil {
-		return fmt.Errorf("failed to start service %s: %v", serviceName, err)
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
+
+	_, err = conn.StartUnitContext(context.Background(), serviceName, "replace", nil)
+	if err != nil {
+		fmt.Printf("Failed to send a start signal to %s: %v", serviceName, err)
+		return err
+	}
+
 	return nil
 }
 
 func StopService(serviceName string) error {
-	cmd := exec.Command("systemctl", "--user", "stop", serviceName)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	// cmd := exec.Command("systemctl", "--user", "stop", serviceName)
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to stop service %s: %v", serviceName, err)
+	// }
 
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
 	if err != nil {
-		return fmt.Errorf("failed to stop service %s: %v", serviceName, err)
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
+
+	_, err = conn.StopUnitContext(context.Background(), serviceName, "replace", nil)
+	if err != nil {
+		fmt.Printf("Failed to send a stop signal to %s: %v", serviceName, err)
+		return err
+	}
+
 	return nil
 }
 
-func ReloadServices() error {
-	cmd := exec.Command("systemctl", "--user", "daemon-reload")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+func ReloadServicesDaemon() error {
+	// cmd := exec.Command("systemctl", "--user", "daemon-reload")
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to reload services: %v", err)
+	// }
 
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
 	if err != nil {
-		return fmt.Errorf("failed to reload services: %v", err)
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
+
+	err = conn.ReloadContext(context.Background())
+	if err != nil {
+		fmt.Printf("Failed to reload systemd daemon: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func ReloadService(serviceName string) error {
+	// if err := ReloadServices(); err != nil {
+	// 	return fmt.Errorf("failed to reload services: %v", err)
+	// }
+	//
+	// cmd := exec.Command("systemctl", "--user", "restart", serviceName)
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	// err := cmd.Run()
+	//
+	// if err != nil {
+	// 	return fmt.Errorf("failed to restart service %s: %v", serviceName, err)
+	// }
+
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
+	if err != nil {
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
+	}
+
+	_, err = conn.ReloadUnitContext(context.Background(), serviceName, "replace", nil)
+	if err != nil {
+		fmt.Printf("Failed to send a reload signal to %s: %v", serviceName, err)
+		return err
+	}
+
 	return nil
 }
 
 func RestartService(serviceName string) error {
-	if err := ReloadServices(); err != nil {
-		return fmt.Errorf("failed to reload services: %v", err)
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
+	if err != nil {
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
 	}
 
-	cmd := exec.Command("systemctl", "--user", "restart", serviceName)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-
+	_, err = conn.RestartUnitContext(context.Background(), serviceName, "replace", nil)
 	if err != nil {
-		return fmt.Errorf("failed to restart service %s: %v", serviceName, err)
-	}
-	return nil
-}
-
-func RestartServiceHard(serviceName string) error {
-	err := StopService(serviceName)
-	if err != nil {
-		return fmt.Errorf("failed to restart service %s: %v", serviceName, err)
-	}
-
-	err = ReloadServices()
-	if err != nil {
-		return fmt.Errorf("failed to reload services after stopping %s: %v", serviceName, err)
-	}
-
-	err = StartService(serviceName)
-	if err != nil {
-		return fmt.Errorf("failed to start service %s: %v", serviceName, err)
+		fmt.Printf("Failed to send a restart signal to %s: %v", serviceName, err)
+		return err
 	}
 
 	return nil
