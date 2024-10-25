@@ -23,20 +23,22 @@ func ListServices() {
 	//
 	// cmd.Run()
 
+	st := "mole"
+
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
 		fmt.Printf("Failed to connect to DBus: %v", err)
 	}
 
-	units, err := conn.ListUnitsByPatternsContext(context.Background(), []string{}, []string{"mole"})
+	units, err := conn.ListUnitsContext(context.Background())
 	if err != nil {
 		fmt.Printf("Failed to list units: %v", err)
 	}
 
 	var output strings.Builder
 	for _, unit := range units {
-		if strings.Contains(unit.Name, "mole") {
+		if strings.Contains(unit.Name, st) {
 			output.WriteString(fmt.Sprintf("%s - %s\n  LoadState: %s, ActiveState: %s\n",
 				unit.Name, unit.Description, unit.LoadState, unit.ActiveState))
 		}
@@ -45,7 +47,7 @@ func ListServices() {
 	if output.Len() > 0 {
 		fmt.Print(output.String())
 	} else {
-		fmt.Println("No services matching 'mole' found.")
+		fmt.Println("No services matching " + st + " found.")
 	}
 
 }
