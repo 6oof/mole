@@ -18,8 +18,9 @@ tbd
 
 #### This quicstart guide assumes a freshly provisioned VPS with the following:
 
-- Running **Fedora 40**.
+- Running a distribution wiht **systemd** (min version 240).
 - SSH root access.
+- Caddy installed
 
 **Note**: **Fedora** was chosen due to better support for recent versions of **Podman**. If you'd like to use a different distribution, you may need to adjust the `install` and `enable` commands below. Note that currently Ubuntu installs a very out of date **Podman** package. As support improves this guide will probably migrate towards **Rocky** or even ubuntu.
 

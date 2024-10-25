@@ -1,6 +1,7 @@
 package execs
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,20 +11,43 @@ import (
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/6oof/mole/pkg/data"
+	"github.com/6oof/mole/pkg/helpers"
 )
 
-func ListServices(pager bool) {
-	cmd := exec.Command("sh", "-c", "systemctl --user list-units --type=service --all --no-legend --plain --no-pager | grep mole")
+func ListServices() {
+	// cmd := exec.Command("sh", "-c", "systemctl --user list-units --type=service --all --no-legend --plain --no-pager | grep mole")
+	//
+	// cmd.Stdin = os.Stdin
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
+	//
+	// cmd.Run()
 
-	if pager {
-		cmd = exec.Command("sh", "-c", "systemctl --user list-units --type=service --all --no-legend --plain | grep mole | less")
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
+	if err != nil {
+		fmt.Printf("Failed to connect to DBus: %v", err)
 	}
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	units, err := conn.ListUnitsByPatternsContext(context.Background(), []string{}, []string{"mole"})
+	if err != nil {
+		fmt.Printf("Failed to list units: %v", err)
+	}
 
-	cmd.Run()
+	var output strings.Builder
+	for _, unit := range units {
+		if strings.Contains(unit.Name, "mole") {
+			output.WriteString(fmt.Sprintf("%s - %s\n  LoadState: %s, ActiveState: %s\n",
+				unit.Name, unit.Description, unit.LoadState, unit.ActiveState))
+		}
+	}
+
+	if output.Len() > 0 {
+		fmt.Print(output.String())
+	} else {
+		fmt.Println("No services matching 'mole' found.")
+	}
+
 }
 
 func EnableService(serviceName string) error {

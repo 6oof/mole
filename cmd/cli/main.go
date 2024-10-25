@@ -14,7 +14,7 @@ import (
 func main() {
 	env, ep := os.LookupEnv("MOLE_ENV_PROD")
 	if ep && env == "1" {
-		consts.BasePath = ""
+		consts.BasePath = "/home/mole"
 	}
 
 	doc, dg := os.LookupEnv("MOLE_DOC")

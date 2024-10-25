@@ -8,9 +8,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: I like it when the execs are in a separate file and just a single function is in the body of the cmd.
+// TODO: We should probably split execs and "actions" they perform
 // TODO: add instructions and validation for types
+// TODO: Errors and prints should be handled at the exec level so we can double up later for json
 var (
-	pager                                                    bool
 	pType                                                    string
 	serviceStart, serviceStop, serviceEnable, serviceDisable bool
 	hardRerload                                              bool
@@ -23,7 +25,6 @@ func init() {
 	servicesRootCmd.AddCommand(unlinkProjectServicesCmd)
 
 	servicesRootCmd.AddCommand(listServicesCmd)
-	listServicesCmd.Flags().BoolVarP(&pager, "pager", "p", false, "Response should be paginated")
 
 	servicesRootCmd.AddCommand(linkProjectServicesCmd)
 	linkProjectServicesCmd.Flags().StringVarP(&pType, "type", "t", "", "Type of services to be linked")
@@ -52,7 +53,7 @@ var listServicesCmd = &cobra.Command{
 	It only lists the services that are marked as "mole" services.
 	This marking happesn automatically when a project is managed by mole.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		execs.ListServices(pager)
+		execs.ListServices()
 	},
 }
 
@@ -65,6 +66,7 @@ var reloadServicesCmd = &cobra.Command{
 	},
 }
 
+// TODO: redo this to just be a string name of the action and handle it in another file
 var serviceActionCmd = &cobra.Command{
 	Use:   "action [service name]",
 	Short: "Action is used to start/stop/enable/disable services",
@@ -106,6 +108,7 @@ var serviceActionCmd = &cobra.Command{
 	},
 }
 
+// TODO: handle hard in another file
 var restartServicesCmd = &cobra.Command{
 	Use:   "restart [service name]",
 	Short: "Restart service",
