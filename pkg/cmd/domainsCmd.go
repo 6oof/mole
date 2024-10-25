@@ -20,7 +20,7 @@ func init() {
 
 	addProxyCaddyCmd.Flags().StringVarP(&domainFlag, "domain", "d", "", "Domain *required")
 	addProxyCaddyCmd.MarkFlagRequired("domain")
-	addProxyCaddyCmd.Flags().StringVarP(&portFlag, "port", "p", "", "Port *required")
+	addProxyCaddyCmd.Flags().IntVarP(&portFlag, "port", "p", 0, "Port *required")
 	addProxyCaddyCmd.MarkFlagRequired("port")
 	addCaddyCmd.AddCommand(addProxyCaddyCmd)
 

@@ -2,11 +2,15 @@ package data
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"os"
 	"path"
+	"strconv"
 	"text/template"
 
 	"github.com/6oof/mole/pkg/consts"
+	"github.com/6oof/mole/pkg/helpers"
 )
 
 type domainData struct {
@@ -20,7 +24,11 @@ type domainSetup struct {
 	Email string
 }
 
-func AddDomainProxy(projectNOI, domain, port string) error {
+func AddDomainProxy(projectNOI, domain string, port int) error {
+	if !helpers.ValidateCaddyDomain(domain) {
+		return fmt.Errorf("error validating domain: %s", domain)
+	}
+
 	p, err := FindProject(projectNOI)
 	if err != nil {
 		return err
@@ -36,7 +44,7 @@ func AddDomainProxy(projectNOI, domain, port string) error {
 
 	dom := domainData{
 		Domain: domain,
-		Port:   port,
+		Port:   strconv.Itoa(port),
 	}
 
 	tmpl, err := template.New("proxy").Parse(domainTemplate)
@@ -117,6 +125,10 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 }
 
 func SetupDomains(email string) error {
+	if !helpers.ValidateEmail(email) {
+		return errors.New("invalid email provided")
+	}
+
 	domainTemplate := `{
     email {{.Email}}
     servers {
@@ -137,6 +149,7 @@ header {
 }
 
 import /home/mole/domains/*.caddy`
+
 	ds := domainSetup{
 		Email: email,
 	}

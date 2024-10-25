@@ -2,7 +2,7 @@ package cmd
 
 var (
 	domainFlag      string
-	portFlag        string
+	portFlag        int
 	locationFlag    string
 	repositoryFlag  string
 	descriptionFlag string

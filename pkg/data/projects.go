@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/6oof/mole/pkg/consts"
+	"github.com/6oof/mole/pkg/enums"
 	"github.com/gofrs/flock"
 	"github.com/lithammer/shortuuid/v4"
 )
@@ -209,8 +210,7 @@ type baseEnvData struct {
 	PName      string
 }
 
-func createProjectBaseEnv(project Project, pType string) error {
-
+func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
 # This configuration is necessary for the project to work properly.
@@ -230,7 +230,7 @@ SERVICES={{.Services}}
 # Add your own variables here:`
 
 	be := baseEnvData{
-		PType:      pType,
+		PType:      pType.String(),
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		VolumePath: "/home/mole/volumes/" + project.Name,
 		Services:   "",
@@ -280,7 +280,7 @@ func CreateProject(newProject Project) error {
 		return err
 	}
 
-	err = createProjectBaseEnv(newProject, "")
+	err = createProjectBaseEnv(newProject, -1)
 	if err != nil {
 		os.RemoveAll(clonePath)
 		return err
