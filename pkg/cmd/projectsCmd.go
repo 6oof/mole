@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/6oof/mole/pkg/actions"
 	"github.com/6oof/mole/pkg/data"
-	"github.com/6oof/mole/pkg/execs"
 	"github.com/spf13/cobra"
 )
 
@@ -134,7 +134,7 @@ var projectEnvCmd = &cobra.Command{
 	Long:  `Env opens the project's .env file in nano.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := execs.FindAndEditEnv(strings.Join(args, " "))
+		err := actions.FindAndEditEnv(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
 		}

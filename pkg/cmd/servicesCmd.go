@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/6oof/mole/pkg/execs"
+	"github.com/6oof/mole/pkg/actions"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ var listServicesCmd = &cobra.Command{
 	It only lists the services that are marked as "mole" services.
 	This marking happesn automatically when a project is managed by mole.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		execs.ListServices()
+		actions.ListServices()
 	},
 }
 
@@ -57,7 +57,7 @@ var reloadServicesCmd = &cobra.Command{
 	Short: "Reload service unit files",
 	Long:  `Reload service unit files. This will register any unit file changes.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		execs.ReloadServicesDaemon()
+		actions.ReloadServicesDaemon()
 	},
 }
 
@@ -73,21 +73,21 @@ var serviceActionCmd = &cobra.Command{
 		}
 
 		if serviceStartFlag {
-			err := execs.StartService(strings.Join(args, ""))
+			err := actions.StartService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		}
 
 		if serviceEnableFlag {
-			err := execs.EnableService(strings.Join(args, ""))
+			err := actions.EnableService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		}
 
 		if serviceStopFlag {
-			err := execs.StopService(strings.Join(args, ""))
+			err := actions.StopService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -95,7 +95,7 @@ var serviceActionCmd = &cobra.Command{
 		}
 
 		if serviceDisableFlag {
-			err := execs.DisableService(strings.Join(args, ""))
+			err := actions.DisableService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -111,12 +111,12 @@ var restartServicesCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if hardRerloadFlag {
-			err := execs.RestartService(strings.Join(args, ""))
+			err := actions.RestartService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 		} else {
-			err := execs.ReloadService(strings.Join(args, ""))
+			err := actions.ReloadService(strings.Join(args, ""))
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -132,7 +132,7 @@ var unlinkProjectServicesCmd = &cobra.Command{
 	~/.config/containers/systemd and ~/.config/systemd/user`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := execs.UnlinkServices(strings.Join(args, ""))
+		err := actions.UnlinkServices(strings.Join(args, ""))
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -147,7 +147,7 @@ var linkProjectServicesCmd = &cobra.Command{
 	or ~/.config/systemd/user if type is "systemd"`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := execs.LinkServices(strings.Join(args, ""), pTypeFlag)
+		err := actions.LinkServices(strings.Join(args, ""), pTypeFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

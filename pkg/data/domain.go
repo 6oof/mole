@@ -76,6 +76,10 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
 }
 
 func AddDomainStatic(projectNOI, domain, location string) error {
+	if !helpers.ValidateCaddyDomain(domain) {
+		return fmt.Errorf("error validating domain: %s", domain)
+	}
+
 	p, err := FindProject(projectNOI)
 	if err != nil {
 		return err

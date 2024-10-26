@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO: we need to validate inputs and flags to not make an unrecoverable mess
 func init() {
 	RootCmd.AddCommand(domainsRootCmd)
 
