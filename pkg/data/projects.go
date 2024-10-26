@@ -207,8 +207,12 @@ type baseEnvData struct {
 	VolumePath string
 	Services   string
 	PName      string
+	PortApp    int
+	PortTwo    int
+	PortThree  int
 }
 
+// TODO: make project type a mandatory flag when adding the project
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
@@ -217,23 +221,36 @@ func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 # {{.EnvPath}}
 
 # Available types: static, podman, systemd
-P_TYPE={{.PType}}
+MOLE_P_TYPE={{.PType}}
 
 # Volume path to be used in podman quadlets
-VOLUME_PATH={{.VolumePath}}
+MOLE_VOLUME_PATH={{.VolumePath}}
 
 # Comma separated list of services to start ("service-1,service-2").
-SERVICES={{.Services}}
+MOLE_SERVICES={{.Services}}
+
+# Three reserved ports for this deployment.
+MOLE_APP_PORT={{.PortApp}}
+MOLE_TWO_PORT={{.PortTwo}}
+MOLE_THREE_PORT={{.PortThree}}
 
 # User-defined environment variables can be added below.
 # Add your own variables here:`
+
+	mp, err := FindAndReserveMolePorts()
+	if err != nil {
+		return err
+	}
 
 	be := baseEnvData{
 		PType:      pType.String(),
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		VolumePath: "/home/mole/volumes/" + project.Name,
-		Services:   "",
+		Services:   "app",
 		PName:      project.Name,
+		PortApp:    mp[0],
+		PortTwo:    mp[1],
+		PortThree:  mp[2],
 	}
 
 	tmpl, err := template.New("env").Parse(domainTemplate)
