@@ -5,13 +5,9 @@ import (
 	"strings"
 
 	"github.com/6oof/mole/pkg/actions"
+	"github.com/6oof/mole/pkg/enums"
 	"github.com/spf13/cobra"
 )
-
-// TODO: I like it when the execs are in a separate file and just a single function is in the body of the cmd.
-// TODO: We should probably split execs and "actions" they perform
-// TODO: add instructions and validation for types
-// TODO: Errors and prints should be handled at the exec level so we can double up later for json
 
 func init() {
 	RootCmd.AddCommand(servicesRootCmd)
@@ -61,7 +57,6 @@ var reloadServicesCmd = &cobra.Command{
 	},
 }
 
-// TODO: redo this to just be a string name of the action and handle it in another file
 var serviceActionCmd = &cobra.Command{
 	Use:   "action [service name]",
 	Short: "Action is used to start/stop/enable/disable services",
@@ -103,7 +98,6 @@ var serviceActionCmd = &cobra.Command{
 	},
 }
 
-// TODO: handle hard in another file
 var restartServicesCmd = &cobra.Command{
 	Use:   "restart [service name]",
 	Short: "Restart service",
@@ -147,7 +141,12 @@ var linkProjectServicesCmd = &cobra.Command{
 	or ~/.config/systemd/user if type is "systemd"`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := actions.LinkServices(strings.Join(args, ""), pTypeFlag)
+		pt, err := enums.IsProjectType(pTypeFlag)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		err = actions.LinkServices(strings.Join(args, ""), pt)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

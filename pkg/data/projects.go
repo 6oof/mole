@@ -201,7 +201,6 @@ func ensureProjectVolume(project Project) error {
 	return nil
 }
 
-// TODO: instead of describe.json we should just read everything from .env. that makes way more sense
 type baseEnvData struct {
 	PType      string
 	EnvPath    string

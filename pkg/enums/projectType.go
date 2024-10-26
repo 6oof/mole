@@ -5,15 +5,15 @@ import "fmt"
 type ProjectType int
 
 const (
-	podman ProjectType = iota
-	static
-	systemd
+	Podman ProjectType = iota
+	Static
+	Systemd
 )
 
 var typeName = map[ProjectType]string{
-	podman:  "podman",
-	static:  "static",
-	systemd: "systemd",
+	Podman:  "podman",
+	Static:  "static",
+	Systemd: "systemd",
 }
 
 func (p ProjectType) String() string {

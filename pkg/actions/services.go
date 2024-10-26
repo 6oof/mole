@@ -10,6 +10,7 @@ import (
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/6oof/mole/pkg/data"
+	"github.com/6oof/mole/pkg/enums"
 	"github.com/6oof/mole/pkg/helpers"
 )
 
@@ -229,7 +230,7 @@ func RestartService(serviceName string) error {
 	return nil
 }
 
-func LinkServices(projectNOI, sType string) error {
+func LinkServices(projectNOI string, sType enums.ProjectType) error {
 	p, err := data.FindProject(projectNOI)
 	if err != nil {
 		return err
@@ -239,14 +240,14 @@ func LinkServices(projectNOI, sType string) error {
 
 	destDir := ""
 
-	if sType == "systemd" {
+	if sType == enums.Systemd {
 		destDir = path.Join(consts.BasePath, ".config", "systemd", "user")
-	} else if sType == "podman" {
+	} else if sType == enums.Podman {
 		destDir = path.Join(consts.BasePath, ".config", "containers", "systemd")
 	}
 
 	if destDir == "" {
-		return fmt.Errorf("invalid service type %s", sType)
+		return fmt.Errorf("invalid service type %s or linking not necessary for the project of type %s", sType.String(), sType.String())
 	}
 
 	err = os.MkdirAll(destDir, os.ModePerm)
