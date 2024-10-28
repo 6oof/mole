@@ -49,17 +49,6 @@ func ListServices() error {
 }
 
 func EnableService(serviceName string) error {
-	// cmd := exec.Command("systemctl", "--user", "enable", serviceName)
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to enable service %s: %v", serviceName, err)
-	// }
-	// return nil
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
@@ -77,16 +66,6 @@ func EnableService(serviceName string) error {
 }
 
 func DisableService(serviceName string) error {
-	// cmd := exec.Command("systemctl", "--user", "disable", serviceName)
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to disable service %s: %v", serviceName, err)
-	// }
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
@@ -104,16 +83,6 @@ func DisableService(serviceName string) error {
 }
 
 func StartService(serviceName string) error {
-	// cmd := exec.Command("systemctl", "--user", "start", serviceName)
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to start service %s: %v", serviceName, err)
-	// }
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
@@ -131,16 +100,6 @@ func StartService(serviceName string) error {
 }
 
 func StopService(serviceName string) error {
-	// cmd := exec.Command("systemctl", "--user", "stop", serviceName)
-	// cmd.Stdin = os.Stdin
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to stop service %s: %v", serviceName, err)
-	// }
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
@@ -158,15 +117,6 @@ func StopService(serviceName string) error {
 }
 
 func ReloadServicesDaemon() error {
-	// cmd := exec.Command("systemctl", "--user", "daemon-reload")
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to reload services: %v", err)
-	// }
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {
@@ -184,19 +134,6 @@ func ReloadServicesDaemon() error {
 }
 
 func ReloadService(serviceName string) error {
-	// if err := ReloadServices(); err != nil {
-	// 	return fmt.Errorf("failed to reload services: %v", err)
-	// }
-	//
-	// cmd := exec.Command("systemctl", "--user", "restart", serviceName)
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
-	// err := cmd.Run()
-	//
-	// if err != nil {
-	// 	return fmt.Errorf("failed to restart service %s: %v", serviceName, err)
-	// }
-
 	conn, err := helpers.ContactDbus()
 	defer conn.Close()
 	if err != nil {

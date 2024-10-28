@@ -21,6 +21,8 @@ func init() {
 	addProjectCmd.MarkFlagRequired("repository")
 	addProjectCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch *required")
 	addProjectCmd.MarkFlagRequired("branch")
+	addProjectCmd.Flags().StringVarP(&pTypeFlag, "type", "t", "", "Type *required")
+	addProjectCmd.MarkFlagRequired("type")
 	addProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Description")
 	projectsRootCmd.AddCommand(addProjectCmd)
 
@@ -87,7 +89,7 @@ var addProjectCmd = &cobra.Command{
 			Branch:        branchFlag,
 		}
 
-		err := data.CreateProject(np)
+		err := data.CreateProject(np, pTypeFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {

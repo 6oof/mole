@@ -213,7 +213,6 @@ type baseEnvData struct {
 	PortThree  int
 }
 
-// TODO: make project type a mandatory flag when adding the project
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
@@ -282,11 +281,16 @@ MOLE_APP_KEY={{.AppKey}}
 	return nil
 }
 
-func CreateProject(newProject Project) error {
+func CreateProject(newProject Project, projectType string) error {
+
+	pt, err := enums.IsProjectType(projectType)
+	if err != nil {
+		return err
+	}
 
 	clonePath := path.Join(consts.BasePath, "projects", newProject.Name)
 
-	err := cloneProject(newProject)
+	err = cloneProject(newProject)
 	if err != nil {
 		return err
 	}
@@ -303,7 +307,7 @@ func CreateProject(newProject Project) error {
 		return err
 	}
 
-	err = createProjectBaseEnv(newProject, -1)
+	err = createProjectBaseEnv(newProject, pt)
 	if err != nil {
 		os.RemoveAll(clonePath)
 		return err
