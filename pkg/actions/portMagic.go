@@ -19,123 +19,121 @@ type reservedPorts struct {
 	Ports ports `json:"ports"`
 }
 
-var reservedPortsFile = path.Join(consts.BasePath, "reservedPorts.json")
-var startAt = 8000
+var reservedPortsFilePath = path.Join(consts.BasePath, "reservedPorts.json")
+var startingPort = 8000
 
+// FindAndReserveMolePorts identifies and reserves the next three available ports starting from `startingPort`.
+// The function also updates the reserved ports file with the new reserved ports.
 func FindAndReserveMolePorts() (ports, error) {
-	ru, err := reservedAndUsed()
+	reservedAndUsedPorts, err := getReservedAndUsedPorts()
 	if err != nil {
-		return ports{}, err
+		return ports{}, fmt.Errorf("failed to retrieve reserved and used ports: %w", err)
 	}
 
 	newPorts := ports{}
-
-	for i := startAt; len(newPorts) < 3; i++ {
-		found := false
-		for _, p := range ru {
-			if p == i {
-				found = true
+	for i := startingPort; len(newPorts) < 3; i++ {
+		isReserved := false
+		for _, port := range reservedAndUsedPorts {
+			if port == i {
+				isReserved = true
+				break
 			}
 		}
 
-		if !found {
-			ru = append(ru, i)
+		if !isReserved {
+			reservedAndUsedPorts = append(reservedAndUsedPorts, i)
 			newPorts = append(newPorts, i)
 		}
 	}
 
-	err = writeReservedPorts(ru)
-	if err != nil {
-		return ports{}, err
+	if err := saveReservedPorts(reservedAndUsedPorts); err != nil {
+		return ports{}, fmt.Errorf("failed to save reserved ports: %w", err)
 	}
 
 	return newPorts, nil
 }
 
-func writeReservedPorts(portsToWrite ports) error {
-	sort.Ints(portsToWrite)
+// saveReservedPorts writes a sorted list of reserved ports to a JSON file.
+func saveReservedPorts(portsToSave ports) error {
+	sort.Ints(portsToSave)
 
-	wp := reservedPorts{
-		Ports: portsToWrite,
+	data := reservedPorts{
+		Ports: portsToSave,
 	}
 
-	pj, err := json.Marshal(wp)
+	fileData, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal reserved ports data: %w", err)
 	}
 
-	os.MkdirAll(consts.BasePath, 0755)
+	if err := os.MkdirAll(consts.BasePath, 0755); err != nil {
+		return fmt.Errorf("failed to create base directory: %w", err)
+	}
 
-	err = os.WriteFile(reservedPortsFile, pj, 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(reservedPortsFilePath, fileData, 0644); err != nil {
+		return fmt.Errorf("failed to write reserved ports to file: %w", err)
 	}
 
 	return nil
 }
 
-func reservedAndUsed() (ports, error) {
-	con, err := net.Connections("tcp")
+// getReservedAndUsedPorts retrieves a list of unique, currently used, and reserved ports.
+func getReservedAndUsedPorts() (ports, error) {
+	connections, err := net.Connections("tcp")
 	if err != nil {
-		return ports{}, err
+		return ports{}, fmt.Errorf("failed to retrieve TCP connections: %w", err)
 	}
 
 	usedPorts := ports{}
-
-	for _, conn := range con {
+	for _, conn := range connections {
 		usedPorts = append(usedPorts, int(conn.Laddr.Port))
 	}
 
-	ps, err := os.ReadFile(reservedPortsFile)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return ports{}, err
-		}
+	reservedData, err := os.ReadFile(reservedPortsFilePath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return ports{}, fmt.Errorf("failed to read reserved ports file: %w", err)
 	}
 
 	reservedPorts := reservedPorts{}
-
-	if len(ps) > 0 {
-		err = json.Unmarshal(ps, &reservedPorts)
-		if err != nil {
-			return ports{}, err
+	if len(reservedData) > 0 {
+		if err := json.Unmarshal(reservedData, &reservedPorts); err != nil {
+			return ports{}, fmt.Errorf("failed to unmarshal reserved ports data: %w", err)
 		}
 	}
 
-	portMap := map[int]bool{}
-	for _, p := range usedPorts {
-		portMap[p] = true
+	portSet := map[int]bool{}
+	for _, port := range usedPorts {
+		portSet[port] = true
 	}
-	for _, p := range reservedPorts.Ports {
-		portMap[p] = true
+	for _, port := range reservedPorts.Ports {
+		portSet[port] = true
 	}
 
 	uniquePorts := ports{}
-	for p := range portMap {
-		uniquePorts = append(uniquePorts, p)
+	for port := range portSet {
+		uniquePorts = append(uniquePorts, port)
 	}
 
 	return uniquePorts, nil
 }
 
+// PortReport generates a comma-separated report of all active TCP ports, sorted in ascending order.
 func PortReport() (string, error) {
-	con, err := net.Connections("tcp")
+	connections, err := net.Connections("tcp")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to retrieve TCP connections: %w", err)
 	}
 
-	portUni := map[string]bool{}
-
-	for _, conn := range con {
-		portUni[fmt.Sprintf("%d", conn.Laddr.Port)] = true
+	uniquePorts := map[string]bool{}
+	for _, conn := range connections {
+		uniquePorts[fmt.Sprintf("%d", conn.Laddr.Port)] = true
 	}
 
-	usedPorts := []string{}
-	for ps := range portUni {
-		usedPorts = append(usedPorts, ps)
+	sortedPorts := []string{}
+	for port := range uniquePorts {
+		sortedPorts = append(sortedPorts, port)
 	}
 
-	sort.Strings(usedPorts)
-
-	return strings.Join(usedPorts, ", "), nil
+	sort.Strings(sortedPorts)
+	return strings.Join(sortedPorts, ", "), nil
 }

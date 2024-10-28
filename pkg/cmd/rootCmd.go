@@ -11,6 +11,6 @@ func init() {
 
 var RootCmd = &cobra.Command{
 	Use:   "mole",
-	Short: "micro-PaaS focused around systemd",
-	Long:  helpers.MoleAsciiArt() + "\nMicro-PaaS solution minimal in size and footprint.\nFocused around systemd.\nfind more info at github.com/6oof/mole",
+	Short: "Micro-PaaS minimal in size and complexity but not in its power",
+	Long:  helpers.MoleAsciiArt() + "\nMole is a lightweight micro-PaaS solution optimized for managing services via systemd.\nFind more information at https://github.com/6oof/mole.",
 }

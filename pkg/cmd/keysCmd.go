@@ -17,28 +17,32 @@ func init() {
 
 var keysRootCmd = &cobra.Command{
 	Use:   "keys",
-	Short: "Interact with ssh keys",
-	Long: `Keys is a group of commands for adding ssh keys.
+	Short: "Manage SSH keys for secure server access",
+	Long: `The "keys" command group provides options for managing SSH keys, 
+including deploying and authorizing keys for secure server access.
 
-to remove an authorized key you should cd into /home/mole/.ssh
-and deleta an entry from authorized_keys.
+To remove an authorized key, navigate to /home/mole/.ssh and delete the 
+relevant entry in the authorized_keys file.
 
-To regenerate the deploy key, cd into /home/home/mole/.ssh
-and delete (rm) id_rsa and id_rsa.pub`,
+To regenerate the deploy key, navigate to /home/mole/.ssh and delete 
+the id_rsa and id_rsa.pub files. This will allow the system to create 
+a new deploy key as needed.`,
 }
 
 var readDeployKeyCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "Deploy returns the deploy key",
-	Long: `Deploy returns the deploy key (id_rsa.pub).
+	Short: "Retrieve or create the deploy key for SSH access",
+	Long: `The "deploy" command displays the current deploy key (id_rsa.pub),
+used for accessing private repositories securely. 
 
-This key can be used to interract with private repositories.
-
-If the deploy key is not found, it will be created.`,
+If no deploy key is found, a new one will be generated automatically 
+and saved to the standard SSH key path. This deploy key enables 
+secure, automated interactions with external repositories.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		key, err := actions.FindOrCreateDeployKey()
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
 
 		fmt.Println(key)
@@ -47,17 +51,21 @@ If the deploy key is not found, it will be created.`,
 
 var addAuthorizedKeyCmd = &cobra.Command{
 	Use:   "authorize [public RSA key]",
-	Short: "Authorize adds an authorized key",
-	Long: `Authorize adds an authorized key to the authorized_keys file.
+	Short: "Add a new public key to the authorized_keys file",
+	Long: `The "authorize" command validates and appends a given public RSA key 
+to the authorized_keys file. This allows the specified key to be used 
+for SSH access to the server.
 
-The key is validated before it is added.`,
+Ensure the key provided is correctly formatted, as it will be validated 
+before being added to prevent errors. Only unique keys will be appended 
+to avoid duplicates in the authorized_keys file.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := actions.AddAuthorizedKeys(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			fmt.Println("Key added")
+			return
 		}
+		fmt.Println("Key added")
 	},
 }

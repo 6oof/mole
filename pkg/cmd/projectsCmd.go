@@ -29,49 +29,53 @@ func init() {
 	editProjectCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Change branch")
 	projectsRootCmd.AddCommand(editProjectCmd)
 
-	deleteProjectCmd.Flags().BoolVarP(&confirmFlag, "confirm", "y", false, "Confirms intent of delition *required")
+	deleteProjectCmd.Flags().BoolVarP(&confirmFlag, "confirm", "y", false, "Confirms intent of deletion *required")
 	deleteProjectCmd.MarkFlagRequired("confirm")
 	projectsRootCmd.AddCommand(deleteProjectCmd)
 }
 
 var projectsRootCmd = &cobra.Command{
 	Use:   "projects",
-	Short: "Interact with projects",
-	Long:  `Interact with projects`,
+	Short: "Manage projects",
+	Long: `Manage projects within the application. 
+This command provides subcommands for creating, listing, 
+finding, editing, and deleting projects.`,
 }
 
 var listProjectsCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List projects",
-	Long: `List projects is for listing all projects.
-	It only returns the projets not marked as deleted.`,
+	Short: "List all projects",
+	Long: `Lists all projects in the system. 
+This provides an overview of available projects for further actions.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(actions.ListProjects())
 	},
 }
 
 var findProjectCmd = &cobra.Command{
-	Use:   "find [project name / id]",
-	Short: "Find a project by name",
-	Long: `Find is for finding a project by name.
-	Usefull bedause many commands reqire the project ID.
-	The method is NOT case sensitive.`,
+	Use:   "find [project name/id]",
+	Short: "Find a project by name or ID",
+	Long: `Searches for a project using its name or ID. 
+This command is case insensitive and returns the project details 
+to assist with further management commands.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		p, err := actions.FindProject(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			fmt.Println(p.Stringify())
+			return
 		}
+
+		fmt.Println(p.Stringify())
 	},
 }
 
 var addProjectCmd = &cobra.Command{
 	Use:   "add [name]",
 	Short: "Add a new project",
-	Long: `Adds a new project.
-	Name and repository are required.`,
+	Long: `Adds a new project to the system. 
+You must provide a name, repository URL, branch, and type. 
+Optionally, you can add a description.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := strings.Join(args, " ")
@@ -84,64 +88,71 @@ var addProjectCmd = &cobra.Command{
 		np := actions.Project{
 			Name:          projectName,
 			Description:   descriptionFlag,
-			RepositoryUrl: repositoryFlag,
+			RepositoryURL: repositoryFlag,
 			Branch:        branchFlag,
 		}
 
 		err := actions.CreateProject(np, pTypeFlag)
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			fmt.Println("New project successfully added")
+			return
 		}
+
+		fmt.Println("New project successfully added")
 	},
 }
 
 var deleteProjectCmd = &cobra.Command{
 	Use:   "delete [name/id]",
 	Short: "Delete a project by name or ID",
-	Long:  `Delete is for finding a project by id or name and deleting it.`,
-	Args:  cobra.ExactArgs(1),
+	Long: `Deletes a project specified by its name or ID. 
+This command marks the project as deleted and can also disable any 
+associated services to ensure clean removal.`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := actions.DisableStopAndUnlinkServices(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			err := actions.DeleteProject(strings.Join(args, " "))
-			if err != nil {
-				fmt.Println(err.Error())
-			} else {
-				fmt.Println("Project with id " + args[0] + " was marked as deleted")
-			}
+			return
 		}
+		err = actions.DeleteProject(strings.Join(args, " "))
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		fmt.Println("Project with id " + args[0] + " was marked as deleted")
 	},
 }
 
 var editProjectCmd = &cobra.Command{
 	Use:   "edit [name/id]",
 	Short: "Edit a project by name or ID",
-	Long: `Edit is for finding a project by id or name and editing its properties.
-	You won't be able to change it's repository, id, or name.`,
+	Long: `Edits properties of a project identified by its name or ID. 
+You can change the description or branch, but not the repository, ID, or name.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := actions.EditProject(strings.Join(args, ""), descriptionFlag, branchFlag)
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			fmt.Println("Project with id " + args[0] + " was updated")
+			return
 		}
+
+		fmt.Println("Project with id " + args[0] + " was updated")
 	},
 }
 
 var projectEnvCmd = &cobra.Command{
 	Use:   "dotenv [name/id]",
-	Short: "Edit project .env",
-	Long:  `Env opens the project's .env file in nano.`,
-	Args:  cobra.ExactArgs(1),
+	Short: "Edit project .env file",
+	Long: `Opens the project's .env file for editing in the nano editor. 
+This allows you to modify environment variables for the specified project.`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := actions.FindAndEditEnv(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
 	},
 }

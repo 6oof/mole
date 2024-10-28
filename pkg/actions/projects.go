@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -18,23 +19,27 @@ import (
 	"github.com/lithammer/shortuuid/v4"
 )
 
-var moleJson = path.Join(consts.BasePath, "mole.json")
-var moleLock = path.Join(consts.BasePath, "mole.lock")
+var moleJSONPath = path.Join(consts.BasePath, "mole.json")
+var moleLockPath = path.Join(consts.BasePath, "mole.lock")
 
+// Projects represents a collection of Project.
 type Projects struct {
 	Projects []Project `json:"projects"`
 }
 
+// Project represents an individual project with its details.
 type Project struct {
-	ProjectId     string `json:"projectId"`
+	ProjectID     string `json:"projectId"`
 	Name          string `json:"name"`
 	Description   string `json:"description"`
-	RepositoryUrl string `json:"repositoryUrl"`
+	RepositoryURL string `json:"repositoryUrl"`
 	Branch        string `json:"branch"`
 }
 
+// readProjectsFromFile reads the project data from the mole.json file.
+// It uses a file lock to ensure that no other process is modifying the file at the same time.
 func readProjectsFromFile() (Projects, error) {
-	fileLock := flock.New(moleLock)
+	fileLock := flock.New(moleLockPath)
 	locked, err := fileLock.TryLock()
 	defer fileLock.Unlock()
 
@@ -43,31 +48,29 @@ func readProjectsFromFile() (Projects, error) {
 	}
 
 	if locked {
-		f, err := os.ReadFile(moleJson)
+		f, err := os.ReadFile(moleJSONPath)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
-				err = os.WriteFile(moleJson, []byte{}, 0644)
+				err = os.WriteFile(moleJSONPath, []byte{}, 0644)
 				if err != nil {
 					return Projects{}, errors.New("mole.json was missing. An attempt to create it failed")
 				}
 			}
-
 			return Projects{}, err
 		}
 
 		var p Projects
-
-		err = json.Unmarshal(f, &p)
-		if err != nil {
-			return Projects{}, err
+		if err := json.Unmarshal(f, &p); err != nil {
+			return Projects{}, fmt.Errorf("failed to unmarshal projects: %w", err)
 		}
 
 		return p, nil
 	} else {
-		return Projects{}, errors.New("Someone else is trying to work with the project store, please try again")
+		return Projects{}, errors.New("someone else is trying to work with the project store, please try again")
 	}
 }
 
+// ListProjects returns a string representation of all projects in mole.json.
 func ListProjects() string {
 	p, err := readProjectsFromFile()
 	if err != nil {
@@ -77,48 +80,50 @@ func ListProjects() string {
 	return p.Stringify()
 }
 
+// FindProject searches for a project by name or ID and returns it.
 func FindProject(searchTerm string) (Project, error) {
 	p, err := readProjectsFromFile()
 	if err != nil {
 		return Project{}, err
 	}
 
-	var fp Project
-
+	var foundProject Project
 	for _, pro := range p.Projects {
-		if strings.ToLower(pro.Name) == strings.ToLower(searchTerm) || pro.ProjectId == searchTerm {
-			fp = pro
+		if strings.EqualFold(pro.Name, searchTerm) || pro.ProjectID == searchTerm {
+			foundProject = pro
+			break
 		}
 	}
 
-	if fp == (Project{}) {
-		return fp, errors.New("Sorry, no project was found!\nYou can use the \"mole projects list\" command to see all projects")
+	if foundProject == (Project{}) {
+		return foundProject, errors.New("sorry, no project was found!\nYou can use the \"mole projects list\" command to see all projects")
 	}
 
-	return fp, nil
+	return foundProject, nil
 }
 
+// saveProjectsToFile saves the current state of the Projects to mole.json.
 func (p Projects) saveProjectsToFile() error {
 	f, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal projects data: %w", err)
 	}
 
-	err = os.WriteFile(moleJson, f, 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(moleJSONPath, f, 0644); err != nil {
+		return fmt.Errorf("failed to write projects to file: %w", err)
 	}
 
 	return nil
 }
 
+// addProject adds a new project to the list of projects and saves it to the file.
 func addProject(newProject Project) error {
 	p, err := readProjectsFromFile()
 	if err != nil {
 		return err
 	}
 
-	fileLock := flock.New(moleLock)
+	fileLock := flock.New(moleLockPath)
 	locked, err := fileLock.TryLock()
 	defer fileLock.Unlock()
 
@@ -127,80 +132,74 @@ func addProject(newProject Project) error {
 	}
 
 	if locked {
-		proId := shortuuid.New()
-
-		newProject.ProjectId = proId
-
+		newProject.ProjectID = shortuuid.New() // Assign a new unique project ID.
 		p.Projects = append(p.Projects, newProject)
 
-		err = p.saveProjectsToFile()
-
-		if err != nil {
+		if err := p.saveProjectsToFile(); err != nil {
 			return err
 		}
 
 		return nil
 	} else {
-		return errors.New("Someone else is trying to work with the project store, please try again")
+		return errors.New("someone else is trying to work with the project store, please try again")
 	}
-
 }
 
+// cloneProject clones a project from a given repository URL into the local file system.
 func cloneProject(project Project) error {
 	clonePath := path.Join(consts.BasePath, "projects", project.Name)
 
 	var stErr bytes.Buffer
-
-	c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryUrl, clonePath)
+	c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryURL, clonePath)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = &stErr
 
-	err := c.Run()
-	if err != nil {
+	if err := c.Run(); err != nil {
 		return errors.New(stErr.String())
 	}
 	return nil
-
 }
 
+// checkEnvGitignore checks if the .gitignore file in the project includes the mandatory .env entry.
 func checkEnvGitignore(project Project) error {
 	clonePath := path.Join(consts.BasePath, "projects", project.Name, ".gitignore")
 
 	gi, err := os.ReadFile(clonePath)
 	if err != nil {
-		return errors.New(`Gitignore is missing from this project. This is mandatory for mole to work properly.`)
+		return errors.New("gitignore is missing from this project. This is mandatory for mole to work properly.")
 	}
 
 	if !containsEnvEntry(string(gi)) {
-		return errors.New(".gitignore does not include an entry for '.env'. This is mandatory for mole to work properly")
+		return errors.New(".gitignore does not include an entry for '.env'. This is mandatory for mole to work properly.")
 	}
 
 	return nil
 }
 
+// containsEnvEntry checks if the .gitignore content contains an entry for .env.
 func containsEnvEntry(content string) bool {
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == ".env" {
+		if strings.TrimSpace(line) == ".env" {
 			return true
 		}
 	}
 	return false
 }
 
+// ensureProjectVolume ensures that a directory for the project volume exists.
 func ensureProjectVolume(project Project) error {
 	volumePath := path.Join(consts.BasePath, "volumes", project.Name)
 
-	err := os.MkdirAll(volumePath, 0755)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(volumePath, 0755); err != nil {
+		return fmt.Errorf("failed to create project volume directory: %w", err)
 	}
 
 	return nil
 }
 
+// baseEnvData holds the data for generating the environment configuration.
 type baseEnvData struct {
 	PType      string
 	EnvPath    string
@@ -213,6 +212,7 @@ type baseEnvData struct {
 	PortThree  int
 }
 
+// createProjectBaseEnv generates the base environment file for the project.
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
@@ -226,7 +226,7 @@ MOLE_PROJECT_TYPE={{.PType}}
 # Volume path to be used in podman quadlets
 MOLE_VOLUME_PATH={{.VolumePath}}
 
-# Comma separated list of services to start ("service-1,service-2").
+# Comma-separated list of services to start ("service-1,service-2").
 MOLE_SERVICES={{.Services}}
 
 # Three reserved ports for this deployment.
@@ -261,26 +261,23 @@ MOLE_APP_KEY={{.AppKey}}
 
 	tmpl, err := template.New("env").Parse(domainTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse environment template: %w", err)
 	}
 
 	var ft bytes.Buffer
-
-	err = tmpl.Execute(&ft, be)
-	if err != nil {
-		return err
+	if err := tmpl.Execute(&ft, be); err != nil {
+		return fmt.Errorf("failed to execute environment template: %w", err)
 	}
 
 	efp := path.Join(consts.BasePath, "projects", project.Name, ".env")
-
-	err = os.WriteFile(efp, ft.Bytes(), 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(efp, ft.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write environment file: %w", err)
 	}
 
 	return nil
 }
 
+// CreateProject creates a new project by cloning a repository and setting it up.
 func CreateProject(newProject Project, projectType string) error {
 	pt, err := enums.IsProjectType(projectType)
 	if err != nil {
@@ -289,43 +286,35 @@ func CreateProject(newProject Project, projectType string) error {
 
 	clonePath := path.Join(consts.BasePath, "projects", newProject.Name)
 
-	err = cloneProject(newProject)
-	if err != nil {
+	if err := cloneProject(newProject); err != nil {
 		return err
 	}
 
-	err = checkEnvGitignore(newProject)
-	if err != nil {
-		os.RemoveAll(clonePath)
+	if err := checkEnvGitignore(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
 
-	err = ensureProjectVolume(newProject)
-	if err != nil {
-		os.RemoveAll(clonePath)
+	if err := ensureProjectVolume(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
 
-	err = createProjectBaseEnv(newProject, pt)
-	if err != nil {
-		os.RemoveAll(clonePath)
+	if err := createProjectBaseEnv(newProject, pt); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
 
-	err = addProject(newProject)
-	if err != nil {
-		os.RemoveAll(clonePath)
+	if err := addProject(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
+		return err
 	}
 
-	return err
-
+	return nil
 }
 
-// NOI stands for name or Id
+// EditProject updates the details of an existing project by its name or ID.
 func EditProject(proNOI, desc, branch string) error {
-	newDesc := desc
-	newBranch := branch
-
 	p, err := readProjectsFromFile()
 	if err != nil {
 		return err
@@ -334,29 +323,26 @@ func EditProject(proNOI, desc, branch string) error {
 	found := false
 
 	for i, pro := range p.Projects {
-		if proNOI == pro.ProjectId || proNOI == pro.Name {
+		if proNOI == pro.ProjectID || proNOI == pro.Name {
 			found = true
-
-			if newDesc != "" {
-				p.Projects[i].Description = newDesc
+			if desc != "" {
+				p.Projects[i].Description = desc
 			}
-			if newBranch != "" {
-				p.Projects[i].Branch = newBranch
+			if branch != "" {
+				p.Projects[i].Branch = branch
 			}
-
+			break
 		}
 	}
 
 	if !found {
-		return errors.New("Project with ID " + proNOI + " not found")
+		return fmt.Errorf("project with ID %s not found", proNOI)
 	}
 
-	err = p.saveProjectsToFile()
-
-	return err
-
+	return p.saveProjectsToFile()
 }
 
+// DeleteProject removes a project from the list by its ID.
 func DeleteProject(proId string) error {
 	p, err := readProjectsFromFile()
 	if err != nil {
@@ -366,48 +352,45 @@ func DeleteProject(proId string) error {
 	found := false
 
 	for i, pro := range p.Projects {
-		if proId == pro.ProjectId {
+		if proId == pro.ProjectID {
 			found = true
-			p.Projects = append(p.Projects[:i], p.Projects[i+1:]...)
+			p.Projects = append(p.Projects[:i], p.Projects[i+1:]...) // Remove the project from the slice.
+			break
 		}
 	}
 
 	if !found {
-		return errors.New("Project with ID " + proId + " not found")
+		return fmt.Errorf("project with ID %s not found", proId)
 	}
 
-	err = p.saveProjectsToFile()
-
-	return err
+	return p.saveProjectsToFile()
 }
 
+// Stringify returns a string representation of the Project.
 func (ps Project) Stringify() string {
 	var b strings.Builder
-
 	b.WriteString("\n")
-	b.WriteString(" |ID     : " + ps.ProjectId + "\n")
+	b.WriteString(" |ID     : " + ps.ProjectID + "\n")
 	b.WriteString(" |Name   : " + ps.Name + "\n")
 	b.WriteString(" |Desc.  : " + ps.Description + "\n")
-	b.WriteString(" |Git    : " + ps.RepositoryUrl + "\n")
+	b.WriteString(" |Git    : " + ps.RepositoryURL + "\n")
 	b.WriteString(" |Branch : " + ps.Branch + "\n")
-
 	return b.String()
 }
 
+// Stringify returns a string representation of all projects.
 func (p Projects) Stringify() string {
 	var b strings.Builder
-
 	for i, pro := range p.Projects {
 		b.WriteString("\n")
 		b.WriteString(strconv.Itoa(i) + ":\n")
 		b.WriteString(pro.Stringify())
 	}
-
 	return b.String()
 }
 
+// FindAndEditEnv opens the .env file for editing using nano.
 func FindAndEditEnv(pName string) error {
-
 	p, err := FindProject(pName)
 	if err != nil {
 		return err
@@ -420,9 +403,8 @@ func FindAndEditEnv(pName string) error {
 	c.Dir = path.Join(consts.BasePath, "projects", p.Name)
 
 	// Run the command and handle any error
-	err = c.Run()
-	if err != nil {
-		return errors.New("Error running vi:" + err.Error())
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("error running nano: %w", err)
 	}
 
 	return nil

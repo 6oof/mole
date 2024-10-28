@@ -28,6 +28,9 @@ Depending on the project type it will do the following:
 		err := actions.RunDeployment(strings.Join(args, ""), restartOnDeplyFlag)
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
+
+		fmt.Println("Deployment succeeded.")
 	},
 }

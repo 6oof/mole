@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/6oof/mole/pkg/consts"
@@ -13,6 +12,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// FindOrCreateDeployKey creates a new SSH deploy key if one does not already exist,
+// and returns the authorized key string representation.
 func FindOrCreateDeployKey() (string, error) {
 	deployKeyPath := path.Join(consts.BasePath, ".ssh", "id_rsa")
 
@@ -24,8 +25,10 @@ func FindOrCreateDeployKey() (string, error) {
 	return kp.AuthorizedKey(), nil
 }
 
+// AddAuthorizedKeys appends a given public key to the authorized_keys file,
+// validating its format and ensuring it is not already present.
 func AddAuthorizedKeys(publicKey string) error {
-	authorizedKeysPath := filepath.Join(consts.BasePath, ".ssh", "authorized_keys")
+	authorizedKeysPath := path.Join(consts.BasePath, ".ssh", "authorized_keys")
 
 	if _, err := os.Stat(authorizedKeysPath); os.IsNotExist(err) {
 		if err := os.WriteFile(authorizedKeysPath, []byte{}, 0644); err != nil {

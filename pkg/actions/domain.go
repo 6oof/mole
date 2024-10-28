@@ -24,14 +24,15 @@ type domainSetup struct {
 	Email string
 }
 
+// AddDomainProxy generates and adds a reverse proxy configuration for the specified domain and port.
 func AddDomainProxy(projectNOI, domain string, port int) error {
 	if !helpers.ValidateCaddyDomain(domain) {
-		return fmt.Errorf("error validating domain: %s", domain)
+		return fmt.Errorf("invalid domain format: %s", domain)
 	}
 
-	p, err := FindProject(projectNOI)
+	project, err := FindProject(projectNOI)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find project %s: %w", projectNOI, err)
 	}
 
 	domainTemplate := `www.{{.Domain}} {
@@ -42,47 +43,44 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
     reverse_proxy 127.0.0.1:{{.Port}}
 }`
 
-	dom := domainData{
+	domainData := domainData{
 		Domain: domain,
 		Port:   strconv.Itoa(port),
 	}
 
-	tmpl, err := template.New("proxy").Parse(domainTemplate)
+	templateInstance, err := template.New("proxy").Parse(domainTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse proxy template: %w", err)
 	}
 
-	var ft bytes.Buffer
-
-	err = tmpl.Execute(&ft, dom)
-	if err != nil {
-		return err
+	var configBuffer bytes.Buffer
+	if err := templateInstance.Execute(&configBuffer, domainData); err != nil {
+		return fmt.Errorf("failed to execute template for domain %s: %w", domain, err)
 	}
 
-	dfp := path.Join(consts.BasePath, "domains", p.Name+".caddy")
-	pdir := path.Join(consts.BasePath, "domains")
+	domainFilePath := path.Join(consts.BasePath, "domains", project.Name+".caddy")
+	domainDirPath := path.Join(consts.BasePath, "domains")
 
-	err = os.MkdirAll(pdir, 0755)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(domainDirPath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", domainDirPath, err)
 	}
 
-	err = os.WriteFile(dfp, ft.Bytes(), 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(domainFilePath, configBuffer.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write domain configuration file %s: %w", domainFilePath, err)
 	}
 
 	return nil
 }
 
+// AddDomainStatic creates a static file server configuration for a specified domain and location.
 func AddDomainStatic(projectNOI, domain, location string) error {
 	if !helpers.ValidateCaddyDomain(domain) {
-		return fmt.Errorf("error validating domain: %s", domain)
+		return fmt.Errorf("invalid domain format: %s", domain)
 	}
 
-	p, err := FindProject(projectNOI)
+	project, err := FindProject(projectNOI)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find project %s: %w", projectNOI, err)
 	}
 
 	staticDomainTemplate := `www.{{.Domain}} {
@@ -94,40 +92,37 @@ func AddDomainStatic(projectNOI, domain, location string) error {
     file_server
 }`
 
-	dom := domainData{
+	domainData := domainData{
 		Domain:      domain,
 		Location:    location,
-		ProjectName: p.Name,
+		ProjectName: project.Name,
 	}
 
-	tmpl, err := template.New("static").Parse(staticDomainTemplate)
+	templateInstance, err := template.New("static").Parse(staticDomainTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse static template: %w", err)
 	}
 
-	var ft bytes.Buffer
-
-	err = tmpl.Execute(&ft, dom)
-	if err != nil {
-		return err
+	var configBuffer bytes.Buffer
+	if err := templateInstance.Execute(&configBuffer, domainData); err != nil {
+		return fmt.Errorf("failed to execute template for static domain %s: %w", domain, err)
 	}
 
-	dfp := path.Join(consts.BasePath, "domains", p.Name+".caddy")
-	pdir := path.Join(consts.BasePath, "domains")
+	domainFilePath := path.Join(consts.BasePath, "domains", project.Name+".caddy")
+	domainDirPath := path.Join(consts.BasePath, "domains")
 
-	err = os.MkdirAll(pdir, 0755)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(domainDirPath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", domainDirPath, err)
 	}
 
-	err = os.WriteFile(dfp, ft.Bytes(), 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(domainFilePath, configBuffer.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write static domain configuration file %s: %w", domainFilePath, err)
 	}
 
 	return nil
 }
 
+// SetupDomains initializes the main Caddy configuration, enabling domain support with TLS.
 func SetupDomains(email string) error {
 	if !helpers.ValidateEmail(email) {
 		return errors.New("invalid email provided")
@@ -154,44 +149,38 @@ header {
 
 import /home/mole/domains/*.caddy`
 
-	ds := domainSetup{
-		Email: email,
+	domainSetupData := domainSetup{Email: email}
+
+	templateInstance, err := template.New("setup").Parse(domainTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to parse setup template: %w", err)
 	}
 
-	tmpl, err := template.New("setup").Parse(domainTemplate)
-	if err != nil {
-		return err
+	var configBuffer bytes.Buffer
+	if err := templateInstance.Execute(&configBuffer, domainSetupData); err != nil {
+		return fmt.Errorf("failed to execute setup template for email %s: %w", email, err)
 	}
 
-	var ft bytes.Buffer
+	caddyFilePath := path.Join(consts.BasePath, "caddy", "main.caddy")
+	caddyDirPath := path.Join(consts.BasePath, "caddy")
 
-	err = tmpl.Execute(&ft, ds)
-	if err != nil {
-		return err
+	if err := os.MkdirAll(caddyDirPath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", caddyDirPath, err)
 	}
 
-	dfp := path.Join(consts.BasePath, "caddy", "main.caddy")
-	pdir := path.Join(consts.BasePath, "caddy")
-
-	err = os.MkdirAll(pdir, 0755)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(dfp, ft.Bytes(), 0644)
-	if err != nil {
-		return err
+	if err := os.WriteFile(caddyFilePath, configBuffer.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write caddy configuration file %s: %w", caddyFilePath, err)
 	}
 
 	return nil
 }
 
+// DeleteProjectDomain removes the Caddy configuration file for the specified project domain.
 func DeleteProjectDomain(projectName string) error {
-	pd := path.Join(consts.BasePath, "domains", projectName+".caddy")
+	domainFilePath := path.Join(consts.BasePath, "domains", projectName+".caddy")
 
-	err := os.Remove(pd)
-	if err != nil {
-		return err
+	if err := os.Remove(domainFilePath); err != nil {
+		return fmt.Errorf("failed to delete project domain configuration %s: %w", domainFilePath, err)
 	}
 
 	return nil
