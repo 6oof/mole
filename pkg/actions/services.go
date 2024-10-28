@@ -177,6 +177,49 @@ func ensureDirsExist(dirs []string) error {
 	return nil
 }
 
+func DisableStopAndUnlinkServices(projectNOI string) error {
+	p, err := data.FindProject(projectNOI)
+	if err != nil {
+		return err
+	}
+
+	searcString := "mole-" + p.Name
+
+	conn, err := helpers.ContactDbus()
+	defer conn.Close()
+	if err != nil {
+		fmt.Printf("Failed to connect to DBus: %v", err)
+		return err
+	}
+
+	units, err := conn.ListUnitsContext(context.Background())
+	if err != nil {
+		fmt.Printf("Failed to list units: %v", err)
+		return err
+	}
+
+	for _, unit := range units {
+		if strings.Contains(unit.Name, searcString) {
+			err := DisableService(unit.Name)
+			if err != nil {
+				return err
+			}
+			err = StopService(unit.Name)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = UnlinkServices(projectNOI)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func LinkServices(projectNOI string, sType enums.ProjectType) error {
 	p, err := data.FindProject(projectNOI)
 	if err != nil {

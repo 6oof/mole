@@ -98,18 +98,22 @@ var addProjectCmd = &cobra.Command{
 	},
 }
 
-// TODO: bring the project down before you delete it. Delete the domain partial before you delete it
 var deleteProjectCmd = &cobra.Command{
 	Use:   "delete [name/id]",
 	Short: "Delete a project by name or ID",
 	Long:  `Delete is for finding a project by id or name and deleting it.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := data.DeleteProject(strings.Join(args, " "))
+		err := actions.DisableStopAndUnlinkServices(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			fmt.Println("Project with id " + args[0] + " was marked as deleted")
+			err := data.DeleteProject(strings.Join(args, " "))
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				fmt.Println("Project with id " + args[0] + " was marked as deleted")
+			}
 		}
 	},
 }
