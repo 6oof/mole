@@ -213,6 +213,7 @@ type baseEnvData struct {
 }
 
 // createProjectBaseEnv generates the base environment file for the project.
+// TODO: we should megre .env.example to the bottom of the env file
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.

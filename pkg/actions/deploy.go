@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// TODO: handle script deploys
 type projectDeployment struct {
 	projectType enums.ProjectType
 	envVars     map[string]string
