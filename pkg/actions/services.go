@@ -167,29 +167,35 @@ func RestartService(serviceName string) error {
 	return nil
 }
 
+func ensureDirsExist(dirs []string) error {
+	for _, dir := range dirs {
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create directory %s: %v", dir, err)
+		}
+	}
+	return nil
+}
+
 func LinkServices(projectNOI string, sType enums.ProjectType) error {
 	p, err := data.FindProject(projectNOI)
 	if err != nil {
 		return err
 	}
 
-	sourceDir := path.Join(consts.BasePath, "projects", p.Name, "mole", "services")
+	sourceDir := path.Join(consts.BasePath, "projects", p.Name, "mole_services")
 
-	destDir := ""
-
+	var destDir string
 	if sType == enums.Systemd {
 		destDir = path.Join(consts.BasePath, ".config", "systemd", "user")
 	} else if sType == enums.Podman {
 		destDir = path.Join(consts.BasePath, ".config", "containers", "systemd")
-	}
-
-	if destDir == "" {
+	} else {
 		return fmt.Errorf("invalid service type %s or linking not necessary for the project of type %s", sType.String(), sType.String())
 	}
 
-	err = os.MkdirAll(destDir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create destination directory %s: %v", destDir, err)
+	if err := ensureDirsExist([]string{destDir}); err != nil {
+		return err
 	}
 
 	err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
@@ -216,9 +222,8 @@ func LinkServices(projectNOI string, sType enums.ProjectType) error {
 		fmt.Printf("Linked %s to %s\n", path, destPath)
 
 		dropInDir := filepath.Join(destDir, "mole-"+p.Name+"-"+info.Name()+".d")
-		err = os.MkdirAll(dropInDir, os.ModePerm)
-		if err != nil {
-			return fmt.Errorf("failed to create drop-in directory %s: %v", dropInDir, err)
+		if err := ensureDirsExist([]string{dropInDir}); err != nil {
+			return err
 		}
 
 		dropInFile := filepath.Join(dropInDir, "override.conf")
@@ -233,7 +238,7 @@ func LinkServices(projectNOI string, sType enums.ProjectType) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("error walking the path %s: %v", sourceDir, err)
+		return fmt.Errorf("error walking the path %s: %v, you should make sure mole_services is present in your repository", sourceDir, err)
 	}
 
 	return nil
@@ -248,6 +253,10 @@ func UnlinkServices(projectNOI string) error {
 	sourceDirs := []string{
 		path.Join(consts.BasePath, ".config", "systemd", "user"),
 		path.Join(consts.BasePath, ".config", "containers", "systemd"),
+	}
+
+	if err := ensureDirsExist(sourceDirs); err != nil {
+		return err
 	}
 
 	for _, destDir := range sourceDirs {

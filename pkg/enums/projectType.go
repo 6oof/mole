@@ -8,12 +8,14 @@ const (
 	Podman ProjectType = iota
 	Static
 	Systemd
+	Script
 )
 
 var typeName = map[ProjectType]string{
 	Podman:  "podman",
 	Static:  "static",
 	Systemd: "systemd",
+	Script:  "script",
 }
 
 func (p ProjectType) String() string {

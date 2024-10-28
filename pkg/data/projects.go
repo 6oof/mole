@@ -92,7 +92,7 @@ func FindProject(searchTerm string) (Project, error) {
 	}
 
 	if fp == (Project{}) {
-		return fp, errors.New("Sorry, no project was found!\nYou can use the list command to see all projects")
+		return fp, errors.New("Sorry, no project was found!\nYou can use the \"mole projects list\" command to see all projects")
 	}
 
 	return fp, nil
@@ -281,6 +281,8 @@ MOLE_APP_KEY={{.AppKey}}
 	return nil
 }
 
+// TODO: make sure to check if there are any services defined in the correct folder for the types that need them
+// TODO: make sure to check for the deploy script for projects that need it
 func CreateProject(newProject Project, projectType string) error {
 
 	pt, err := enums.IsProjectType(projectType)

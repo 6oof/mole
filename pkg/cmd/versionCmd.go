@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/6oof/mole/pkg/consts"
+	"github.com/6oof/mole/pkg/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +17,6 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of mole",
 	Long:  `All software has versions. This is mole's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(consts.Version)
+		fmt.Println(helpers.MoleAsciiArt() + "\n" + consts.Version)
 	},
 }

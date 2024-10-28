@@ -6,6 +6,7 @@ require (
 	github.com/charmbracelet/keygen v0.5.1
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gofrs/flock v0.12.1
+	github.com/joho/godotenv v1.5.1
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/spf13/cobra v1.8.1
