@@ -3,9 +3,11 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"sort"
+	"strings"
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/shirou/gopsutil/net"
@@ -114,4 +116,26 @@ func reservedAndUsed() (ports, error) {
 	}
 
 	return uniquePorts, nil
+}
+
+func PortReport() (string, error) {
+	con, err := net.Connections("tcp")
+	if err != nil {
+		return "", err
+	}
+
+	portUni := map[string]bool{}
+
+	for _, conn := range con {
+		portUni[fmt.Sprintf("%d", conn.Laddr.Port)] = true
+	}
+
+	usedPorts := []string{}
+	for ps := range portUni {
+		usedPorts = append(usedPorts, ps)
+	}
+
+	sort.Strings(usedPorts)
+
+	return strings.Join(usedPorts, ", "), nil
 }

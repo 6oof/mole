@@ -31,7 +31,6 @@ type Project struct {
 	Description   string `json:"description"`
 	RepositoryUrl string `json:"repositoryUrl"`
 	Branch        string `json:"branch"`
-	Deleted       bool   `json:"deleted"`
 }
 
 func readProjectsFromFile() (Projects, error) {

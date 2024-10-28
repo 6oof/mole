@@ -7,7 +7,7 @@ import (
 
 func GenerateAppKey() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	const klen = 16
+	const klen = 32
 
 	seed := rand.New(rand.NewSource(time.Now().Unix()))
 

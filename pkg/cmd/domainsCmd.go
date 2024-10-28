@@ -57,18 +57,17 @@ var setupCaddyCmd = &cobra.Command{
 	},
 }
 
-// TODO: make sure this replaced with port magic
 var listTakenPortsCmd = &cobra.Command{
 	Use:   "ports",
 	Short: "List active ports",
 	Long: `List projects is for listing all taken ports.
 	It uses ss under the hood and strips most of the output.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		c := exec.Command("sh", "-c", "ss -tulnH | awk '{print $5}'")
-		co, _ := c.CombinedOutput()
-
-		fmt.Println(string(co))
+		p, err := data.PortReport()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(p)
 	},
 }
 
