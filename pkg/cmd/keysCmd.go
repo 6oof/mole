@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/6oof/mole/pkg/data"
+	"github.com/6oof/mole/pkg/actions"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +36,7 @@ This key can be used to interract with private repositories.
 
 If the deploy key is not found, it will be created.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		key, err := data.FindOrCreateDeployKey()
+		key, err := actions.FindOrCreateDeployKey()
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -53,7 +53,7 @@ var addAuthorizedKeyCmd = &cobra.Command{
 The key is validated before it is added.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := data.AddAuthorizedKeys(strings.Join(args, " "))
+		err := actions.AddAuthorizedKeys(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {

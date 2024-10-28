@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/6oof/mole/pkg/actions"
-	"github.com/6oof/mole/pkg/data"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +46,7 @@ var listProjectsCmd = &cobra.Command{
 	Long: `List projects is for listing all projects.
 	It only returns the projets not marked as deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(data.ListProjects())
+		fmt.Println(actions.ListProjects())
 	},
 }
 
@@ -59,7 +58,7 @@ var findProjectCmd = &cobra.Command{
 	The method is NOT case sensitive.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		p, err := data.FindProject(strings.Join(args, " "))
+		p, err := actions.FindProject(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -82,14 +81,14 @@ var addProjectCmd = &cobra.Command{
 			return
 		}
 
-		np := data.Project{
+		np := actions.Project{
 			Name:          projectName,
 			Description:   descriptionFlag,
 			RepositoryUrl: repositoryFlag,
 			Branch:        branchFlag,
 		}
 
-		err := data.CreateProject(np, pTypeFlag)
+		err := actions.CreateProject(np, pTypeFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -108,7 +107,7 @@ var deleteProjectCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			err := data.DeleteProject(strings.Join(args, " "))
+			err := actions.DeleteProject(strings.Join(args, " "))
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
@@ -125,7 +124,7 @@ var editProjectCmd = &cobra.Command{
 	You won't be able to change it's repository, id, or name.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := data.EditProject(strings.Join(args, ""), descriptionFlag, branchFlag)
+		err := actions.EditProject(strings.Join(args, ""), descriptionFlag, branchFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {

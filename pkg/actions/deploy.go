@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/6oof/mole/pkg/consts"
-	"github.com/6oof/mole/pkg/data"
 	"github.com/6oof/mole/pkg/enums"
 	"github.com/6oof/mole/pkg/helpers"
 	"github.com/joho/godotenv"
@@ -128,7 +127,7 @@ func gitPullProject(project projectDeployment) error {
 }
 
 func prepareDeployment(projectNOI string) (projectDeployment, error) {
-	p, err := data.FindProject(projectNOI)
+	p, err := FindProject(projectNOI)
 	if err != nil {
 		return projectDeployment{}, err
 	}

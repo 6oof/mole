@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/6oof/mole/pkg/data"
+	"github.com/6oof/mole/pkg/actions"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ var setupCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		e := strings.Join(args, " ")
 
-		err := data.SetupDomains(e)
+		err := actions.SetupDomains(e)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -63,7 +63,7 @@ var listTakenPortsCmd = &cobra.Command{
 	Long: `List projects is for listing all taken ports.
 	It uses ss under the hood and strips most of the output.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		p, err := data.PortReport()
+		p, err := actions.PortReport()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -119,7 +119,7 @@ var addProxyCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 
-		err := data.AddDomainProxy(a, domainFlag, portFlag)
+		err := actions.AddDomainProxy(a, domainFlag, portFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -137,7 +137,7 @@ var addStaticCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 
-		err := data.AddDomainStatic(a, domainFlag, locationFlag)
+		err := actions.AddDomainStatic(a, domainFlag, locationFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -155,7 +155,7 @@ var deleteCaddyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 
-		err := data.DeleteProjectDomain(a)
+		err := actions.DeleteProjectDomain(a)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
