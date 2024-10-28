@@ -57,6 +57,7 @@ var setupCaddyCmd = &cobra.Command{
 	},
 }
 
+// TODO: make sure this replaced with port magic
 var listTakenPortsCmd = &cobra.Command{
 	Use:   "ports",
 	Short: "List active ports",

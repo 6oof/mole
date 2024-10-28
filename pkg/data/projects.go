@@ -13,6 +13,7 @@ import (
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/6oof/mole/pkg/enums"
+	"github.com/6oof/mole/pkg/helpers"
 	"github.com/gofrs/flock"
 	"github.com/lithammer/shortuuid/v4"
 )
@@ -207,6 +208,7 @@ type baseEnvData struct {
 	VolumePath string
 	Services   string
 	PName      string
+	AppKey     string
 	PortApp    int
 	PortTwo    int
 	PortThree  int
@@ -221,7 +223,7 @@ func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 # {{.EnvPath}}
 
 # Available types: static, podman, systemd
-MOLE_P_TYPE={{.PType}}
+MOLE_PROJECT_TYPE={{.PType}}
 
 # Volume path to be used in podman quadlets
 MOLE_VOLUME_PATH={{.VolumePath}}
@@ -234,6 +236,9 @@ MOLE_APP_PORT={{.PortApp}}
 MOLE_TWO_PORT={{.PortTwo}}
 MOLE_THREE_PORT={{.PortThree}}
 
+# Random string to be used as a key when necessary
+MOLE_APP_KEY={{.AppKey}}
+
 # User-defined environment variables can be added below.
 # Add your own variables here:`
 
@@ -241,6 +246,8 @@ MOLE_THREE_PORT={{.PortThree}}
 	if err != nil {
 		return err
 	}
+
+	key := helpers.GenerateAppKey()
 
 	be := baseEnvData{
 		PType:      pType.String(),
@@ -251,6 +258,7 @@ MOLE_THREE_PORT={{.PortThree}}
 		PortApp:    mp[0],
 		PortTwo:    mp[1],
 		PortThree:  mp[2],
+		AppKey:     key,
 	}
 
 	tmpl, err := template.New("env").Parse(domainTemplate)
