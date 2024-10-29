@@ -19,9 +19,6 @@ import (
 	"github.com/lithammer/shortuuid/v4"
 )
 
-var moleJSONPath = path.Join(consts.BasePath, "mole.json")
-var moleLockPath = path.Join(consts.BasePath, "mole.lock")
-
 // Projects represents a collection of Project.
 type Projects struct {
 	Projects []Project `json:"projects"`
@@ -36,10 +33,20 @@ type Project struct {
 	Branch        string `json:"branch"`
 }
 
+// getMoleJSONPath returns the full path to mole.json based on consts.BasePath.
+func getMoleJSONPath() string {
+	return path.Join(consts.BasePath, "mole.json")
+}
+
+// getMoleLockPath returns the full path to mole.lock based on consts.BasePath.
+func getMoleLockPath() string {
+	return path.Join(consts.BasePath, "mole.lock")
+}
+
 // readProjectsFromFile reads the project data from the mole.json file.
 // It uses a file lock to ensure that no other process is modifying the file at the same time.
 func readProjectsFromFile() (Projects, error) {
-	fileLock := flock.New(moleLockPath)
+	fileLock := flock.New(getMoleLockPath())
 	locked, err := fileLock.TryLock()
 	defer fileLock.Unlock()
 
@@ -48,10 +55,10 @@ func readProjectsFromFile() (Projects, error) {
 	}
 
 	if locked {
-		f, err := os.ReadFile(moleJSONPath)
+		f, err := os.ReadFile(getMoleJSONPath())
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
-				err = os.WriteFile(moleJSONPath, []byte{}, 0644)
+				err = os.WriteFile(getMoleJSONPath(), []byte{}, 0644)
 				if err != nil {
 					return Projects{}, errors.New("mole.json was missing. An attempt to create it failed")
 				}
@@ -109,7 +116,7 @@ func (p Projects) saveProjectsToFile() error {
 		return fmt.Errorf("failed to marshal projects data: %w", err)
 	}
 
-	if err := os.WriteFile(moleJSONPath, f, 0644); err != nil {
+	if err := os.WriteFile(getMoleJSONPath(), f, 0644); err != nil {
 		return fmt.Errorf("failed to write projects to file: %w", err)
 	}
 
@@ -118,12 +125,13 @@ func (p Projects) saveProjectsToFile() error {
 
 // addProject adds a new project to the list of projects and saves it to the file.
 func addProject(newProject Project) error {
+
 	p, err := readProjectsFromFile()
 	if err != nil {
 		return err
 	}
 
-	fileLock := flock.New(moleLockPath)
+	fileLock := flock.New(getMoleLockPath())
 	locked, err := fileLock.TryLock()
 	defer fileLock.Unlock()
 
@@ -147,18 +155,22 @@ func addProject(newProject Project) error {
 
 // cloneProject clones a project from a given repository URL into the local file system.
 func cloneProject(project Project) error {
-	clonePath := path.Join(consts.BasePath, "projects", project.Name)
+	if !consts.Testing {
+		clonePath := path.Join(consts.BasePath, "projects", project.Name)
 
-	var stErr bytes.Buffer
-	c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryURL, clonePath)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = &stErr
+		var stErr bytes.Buffer
+		c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryURL, clonePath)
+		c.Stdin = os.Stdin
+		c.Stdout = os.Stdout
+		c.Stderr = &stErr
 
-	if err := c.Run(); err != nil {
-		return errors.New(stErr.String())
+		if err := c.Run(); err != nil {
+			return errors.New(stErr.String())
+		}
+		return nil
+	} else {
+		return nil
 	}
-	return nil
 }
 
 // checkEnvGitignore checks if the .gitignore file in the project includes the mandatory .env entry.
