@@ -138,8 +138,8 @@ specified project. This operation affects services located in both
 var linkProjectServicesCmd = &cobra.Command{
 	Use:   "link [project name/id]",
 	Short: "Link services to a project",
-	Long: `Links the specified project's services into the appropriate directory. 
-Depending on the service type, services will be linked to 
+	Long: `Links the specified project's services located in "mole_services" into the appropriate directory. 
+Depending on the service type defined in the .env file, services will be linked to 
 ~/.config/containers/systemd (for Podman) or ~/.config/systemd/user (for systemd).`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
