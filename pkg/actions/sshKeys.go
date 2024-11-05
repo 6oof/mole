@@ -30,6 +30,10 @@ func FindOrCreateDeployKey() (string, error) {
 func AddAuthorizedKeys(publicKey string) error {
 	authorizedKeysPath := path.Join(consts.GetBasePath(), ".ssh", "authorized_keys")
 
+	if err := os.MkdirAll(path.Join(consts.GetBasePath(), ".ssh"), 0700); err != nil {
+		return fmt.Errorf("failed to create project volume directory: %w", err)
+	}
+
 	if _, err := os.Stat(authorizedKeysPath); os.IsNotExist(err) {
 		if err := os.WriteFile(authorizedKeysPath, []byte{}, 0644); err != nil {
 			return fmt.Errorf("failed to create authorized_keys file: %v", err)
