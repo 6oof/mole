@@ -33,14 +33,14 @@ type Project struct {
 	Branch        string `json:"branch"`
 }
 
-// getMoleJSONPath returns the full path to mole.json based on consts.BasePath.
+// getMoleJSONPath returns the full path to mole.json based on consts.GetBasePath().
 func getMoleJSONPath() string {
-	return path.Join(consts.BasePath, "mole.json")
+	return path.Join(consts.GetBasePath(), "mole.json")
 }
 
-// getMoleLockPath returns the full path to mole.lock based on consts.BasePath.
+// getMoleLockPath returns the full path to mole.lock based on consts.GetBasePath().
 func getMoleLockPath() string {
-	return path.Join(consts.BasePath, "mole.lock")
+	return path.Join(consts.GetBasePath(), "mole.lock")
 }
 
 // readProjectsFromFile reads the project data from the mole.json file.
@@ -156,7 +156,7 @@ func addProject(newProject Project) error {
 // cloneProject clones a project from a given repository URL into the local file system.
 func cloneProject(project Project) error {
 	if !consts.Testing {
-		clonePath := path.Join(consts.BasePath, "projects", project.Name)
+		clonePath := path.Join(consts.GetBasePath(), "projects", project.Name)
 
 		var stErr bytes.Buffer
 		c := exec.Command("git", "clone", "--depth", "1", "-b", project.Branch, project.RepositoryURL, clonePath)
@@ -175,7 +175,7 @@ func cloneProject(project Project) error {
 
 // checkEnvGitignore checks if the .gitignore file in the project includes the mandatory .env entry.
 func checkEnvGitignore(project Project) error {
-	clonePath := path.Join(consts.BasePath, "projects", project.Name, ".gitignore")
+	clonePath := path.Join(consts.GetBasePath(), "projects", project.Name, ".gitignore")
 
 	gi, err := os.ReadFile(clonePath)
 	if err != nil {
@@ -202,7 +202,7 @@ func containsEnvEntry(content string) bool {
 
 // ensureProjectVolume ensures that a directory for the project volume exists.
 func ensureProjectVolume(project Project) error {
-	volumePath := path.Join(consts.BasePath, "volumes", project.Name)
+	volumePath := path.Join(consts.GetBasePath(), "volumes", project.Name)
 
 	if err := os.MkdirAll(volumePath, 0755); err != nil {
 		return fmt.Errorf("failed to create project volume directory: %w", err)
@@ -282,7 +282,7 @@ MOLE_APP_KEY={{.AppKey}}
 		return fmt.Errorf("failed to execute environment template: %w", err)
 	}
 
-	efp := path.Join(consts.BasePath, "projects", project.Name, ".env")
+	efp := path.Join(consts.GetBasePath(), "projects", project.Name, ".env")
 	if err := os.WriteFile(efp, ft.Bytes(), 0644); err != nil {
 		return fmt.Errorf("failed to write environment file: %w", err)
 	}
@@ -297,7 +297,7 @@ func CreateProject(newProject Project, projectType string) error {
 		return err
 	}
 
-	clonePath := path.Join(consts.BasePath, "projects", newProject.Name)
+	clonePath := path.Join(consts.GetBasePath(), "projects", newProject.Name)
 
 	if err := cloneProject(newProject); err != nil {
 		return err
@@ -413,7 +413,7 @@ func FindAndEditEnv(pName string) error {
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
-	c.Dir = path.Join(consts.BasePath, "projects", p.Name)
+	c.Dir = path.Join(consts.GetBasePath(), "projects", p.Name)
 
 	// Run the command and handle any error
 	if err := c.Run(); err != nil {

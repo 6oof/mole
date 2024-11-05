@@ -7,3 +7,7 @@ const Version = "0.0.1-alpha"
 var BasePath string = "./false_location"
 
 var Testing bool = false
+
+func GetBasePath() string {
+	return BasePath
+}

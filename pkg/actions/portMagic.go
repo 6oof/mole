@@ -19,7 +19,6 @@ type reservedPorts struct {
 	Ports ports `json:"ports"`
 }
 
-var reservedPortsFilePath = path.Join(consts.BasePath, "reservedPorts.json")
 var startingPort = 8000
 
 // FindAndReserveMolePorts identifies and reserves the next three available ports starting from `startingPort`.
@@ -65,12 +64,11 @@ func saveReservedPorts(portsToSave ports) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal reserved ports data: %w", err)
 	}
-
-	if err := os.MkdirAll(consts.BasePath, 0755); err != nil {
+	if err := os.MkdirAll(consts.GetBasePath(), 0755); err != nil {
 		return fmt.Errorf("failed to create base directory: %w", err)
 	}
 
-	if err := os.WriteFile(reservedPortsFilePath, fileData, 0644); err != nil {
+	if err := os.WriteFile(path.Join(consts.GetBasePath(), "reservedPorts.json"), fileData, 0644); err != nil {
 		return fmt.Errorf("failed to write reserved ports to file: %w", err)
 	}
 
@@ -89,7 +87,7 @@ func getReservedAndUsedPorts() (ports, error) {
 		usedPorts = append(usedPorts, int(conn.Laddr.Port))
 	}
 
-	reservedData, err := os.ReadFile(reservedPortsFilePath)
+	reservedData, err := os.ReadFile(path.Join(consts.GetBasePath(), "reservedPorts.json"))
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return ports{}, fmt.Errorf("failed to read reserved ports file: %w", err)
 	}

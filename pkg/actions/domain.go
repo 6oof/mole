@@ -58,8 +58,8 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
 		return fmt.Errorf("failed to execute template for domain %s: %w", domain, err)
 	}
 
-	domainFilePath := path.Join(consts.BasePath, "domains", project.Name+".caddy")
-	domainDirPath := path.Join(consts.BasePath, "domains")
+	domainFilePath := path.Join(consts.GetBasePath(), "domains", project.Name+".caddy")
+	domainDirPath := path.Join(consts.GetBasePath(), "domains")
 
 	if err := os.MkdirAll(domainDirPath, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", domainDirPath, err)
@@ -108,8 +108,8 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 		return fmt.Errorf("failed to execute template for static domain %s: %w", domain, err)
 	}
 
-	domainFilePath := path.Join(consts.BasePath, "domains", project.Name+".caddy")
-	domainDirPath := path.Join(consts.BasePath, "domains")
+	domainFilePath := path.Join(consts.GetBasePath(), "domains", project.Name+".caddy")
+	domainDirPath := path.Join(consts.GetBasePath(), "domains")
 
 	if err := os.MkdirAll(domainDirPath, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", domainDirPath, err)
@@ -161,8 +161,8 @@ import /home/mole/domains/*.caddy`
 		return fmt.Errorf("failed to execute setup template for email %s: %w", email, err)
 	}
 
-	caddyFilePath := path.Join(consts.BasePath, "caddy", "main.caddy")
-	caddyDirPath := path.Join(consts.BasePath, "caddy")
+	caddyFilePath := path.Join(consts.GetBasePath(), "caddy", "main.caddy")
+	caddyDirPath := path.Join(consts.GetBasePath(), "caddy")
 
 	if err := os.MkdirAll(caddyDirPath, 0755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", caddyDirPath, err)
@@ -177,7 +177,7 @@ import /home/mole/domains/*.caddy`
 
 // DeleteProjectDomain removes the Caddy configuration file for the specified project domain.
 func DeleteProjectDomain(projectName string) error {
-	domainFilePath := path.Join(consts.BasePath, "domains", projectName+".caddy")
+	domainFilePath := path.Join(consts.GetBasePath(), "domains", projectName+".caddy")
 
 	if err := os.Remove(domainFilePath); err != nil {
 		return fmt.Errorf("failed to delete project domain configuration %s: %w", domainFilePath, err)

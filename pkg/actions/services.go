@@ -207,14 +207,14 @@ func LinkServices(projectNOI string, sType enums.ProjectType) error {
 		return err
 	}
 
-	sourceDir := path.Join(consts.BasePath, "projects", p.Name, "mole_services")
+	sourceDir := path.Join(consts.GetBasePath(), "projects", p.Name, "mole_services")
 	var destDir string
 
 	switch sType {
 	case enums.Systemd:
-		destDir = path.Join(consts.BasePath, ".config", "systemd", "user")
+		destDir = path.Join(consts.GetBasePath(), ".config", "systemd", "user")
 	case enums.Podman:
-		destDir = path.Join(consts.BasePath, ".config", "containers", "systemd")
+		destDir = path.Join(consts.GetBasePath(), ".config", "containers", "systemd")
 	default:
 		return fmt.Errorf("invalid service type %s or linking not necessary for the project of type %s", sType.String(), sType.String())
 	}
@@ -273,8 +273,8 @@ func UnlinkServices(projectNOI string) error {
 	}
 
 	sourceDirs := []string{
-		path.Join(consts.BasePath, ".config", "systemd", "user"),
-		path.Join(consts.BasePath, ".config", "containers", "systemd"),
+		path.Join(consts.GetBasePath(), ".config", "systemd", "user"),
+		path.Join(consts.GetBasePath(), ".config", "containers", "systemd"),
 	}
 
 	if err := ensureDirsExist(sourceDirs); err != nil {

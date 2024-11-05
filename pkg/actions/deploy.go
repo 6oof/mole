@@ -99,7 +99,7 @@ func gitPullProject(project projectDeployment) error {
 	var errOut, stOut bytes.Buffer
 
 	cmd := exec.Command("git", "pull")
-	cmd.Dir = path.Join(consts.BasePath, "projects", project.projectName)
+	cmd.Dir = path.Join(consts.GetBasePath(), "projects", project.projectName)
 	cmd.Stderr = &errOut
 	cmd.Stdout = &stOut
 
@@ -117,7 +117,7 @@ func prepareDeployment(projectNOI string) (projectDeployment, error) {
 		return projectDeployment{}, err
 	}
 
-	projectEnv := path.Join(consts.BasePath, "projects", p.Name, ".env")
+	projectEnv := path.Join(consts.GetBasePath(), "projects", p.Name, ".env")
 	env, err := godotenv.Read(projectEnv)
 	if err != nil {
 		return projectDeployment{}, err

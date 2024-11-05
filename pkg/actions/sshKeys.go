@@ -15,7 +15,7 @@ import (
 // FindOrCreateDeployKey creates a new SSH deploy key if one does not already exist,
 // and returns the authorized key string representation.
 func FindOrCreateDeployKey() (string, error) {
-	deployKeyPath := path.Join(consts.BasePath, ".ssh", "id_rsa")
+	deployKeyPath := path.Join(consts.GetBasePath(), ".ssh", "id_rsa")
 
 	kp, err := keygen.New(deployKeyPath, keygen.WithKeyType(keygen.RSA), keygen.WithBitSize(2048), keygen.WithWrite())
 	if err != nil {
@@ -28,7 +28,7 @@ func FindOrCreateDeployKey() (string, error) {
 // AddAuthorizedKeys appends a given public key to the authorized_keys file,
 // validating its format and ensuring it is not already present.
 func AddAuthorizedKeys(publicKey string) error {
-	authorizedKeysPath := path.Join(consts.BasePath, ".ssh", "authorized_keys")
+	authorizedKeysPath := path.Join(consts.GetBasePath(), ".ssh", "authorized_keys")
 
 	if _, err := os.Stat(authorizedKeysPath); os.IsNotExist(err) {
 		if err := os.WriteFile(authorizedKeysPath, []byte{}, 0644); err != nil {
