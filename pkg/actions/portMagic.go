@@ -19,7 +19,7 @@ type reservedPorts struct {
 	Ports ports `json:"ports"`
 }
 
-var startingPort = 8000
+var startingPort = 9000
 
 // FindAndReserveMolePorts identifies and reserves the next three available ports starting from `startingPort`.
 // The function also updates the reserved ports file with the new reserved ports.

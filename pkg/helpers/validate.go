@@ -17,5 +17,3 @@ func ValidateCaddyDomain(domain string) bool {
 	re := regexp.MustCompile(domainRegex)
 	return re.MatchString(domain)
 }
-
-//TODO: move project name validation here
