@@ -229,7 +229,7 @@ type baseEnvData struct {
 
 // createProjectBaseEnv generates the base environment file for the project.
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
-	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
+	envTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
 # This configuration is necessary for the project to work properly.
 # Static path to this file on mole managed servers is:
@@ -285,7 +285,7 @@ MOLE_DB_PASS={{.DbPassword}}
 		DbPassword: dbPass,
 	}
 
-	tmpl, err := template.New("env").Parse(domainTemplate)
+	tmpl, err := template.New("env").Parse(envTemplate)
 	if err != nil {
 		return fmt.Errorf("failed to parse environment template: %w", err)
 	}
@@ -304,8 +304,7 @@ MOLE_DB_PASS={{.DbPassword}}
 }
 
 // CreateProject creates a new project by cloning a repository and setting it up.
-// TODO: If applicable there should be a deply flag to imidiately deploy
-func CreateProject(newProject Project, projectType string) error {
+func CreateProject(newProject Project, projectType string, deploy bool) error {
 	pt, err := enums.IsProjectType(projectType)
 	if err != nil {
 		return err
@@ -335,6 +334,13 @@ func CreateProject(newProject Project, projectType string) error {
 	if err := addProject(newProject); err != nil {
 		os.RemoveAll(clonePath) // Clean up on error
 		return err
+	}
+
+	if deploy {
+		err := RunDeployment(newProject.Name, false)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

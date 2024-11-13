@@ -23,6 +23,7 @@ func init() {
 	addProjectCmd.Flags().StringVarP(&pTypeFlag, "type", "t", "", "Type *required")
 	addProjectCmd.MarkFlagRequired("type")
 	addProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Description")
+	addProjectCmd.Flags().BoolVar(&deployAfterCreateFlag, "deploy", false, "Deploy after create")
 	projectsRootCmd.AddCommand(addProjectCmd)
 
 	editProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Change description")
@@ -93,7 +94,7 @@ Optionally, you can add a description.`,
 			Branch:        branchFlag,
 		}
 
-		err := actions.CreateProject(np, pTypeFlag)
+		err := actions.CreateProject(np, pTypeFlag, deployAfterCreateFlag)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
