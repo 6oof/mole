@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/6oof/mole/pkg/actions"
+	"github.com/6oof/mole/pkg/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -71,7 +71,6 @@ to assist with further management commands.`,
 	},
 }
 
-// TODO: move validation to helpers
 var addProjectCmd = &cobra.Command{
 	Use:   "add [name]",
 	Short: "Add a new project",
@@ -81,9 +80,9 @@ Optionally, you can add a description.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := strings.Join(args, " ")
-		re := regexp.MustCompile(`^[a-z0-9_-]+$`)
-		if !re.MatchString(projectName) {
-			fmt.Println("Error: Project name can only contain lowercase letters, digits, underscores, and hyphens.")
+
+		if !helpers.ValidateProjectName(projectName) {
+			fmt.Println("Error: Project name can only contain lowercase letters, digits, underscores, and hyphens. It should start and end with a letter or a number")
 			return
 		}
 

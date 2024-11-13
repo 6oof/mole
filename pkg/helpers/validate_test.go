@@ -52,3 +52,31 @@ func TestValidateCaddyDomain(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateProjectName(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected bool
+	}{
+		{"project1", true},
+		{"project-name", true},
+		{"project_name", true},
+		{"project123", true},
+		{"123project", true},
+		{"project-123", true},
+		{"project_123", true},
+		{"project@", false},
+		{"project name", false},
+		{"ProjectName", false},
+		{"project.name", false},
+		{"project-name-", false},
+		{"-project", false},
+		{"", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, ValidateProjectName(tt.name))
+		})
+	}
+}
