@@ -237,15 +237,15 @@ func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 MOLE_PROJECT_TYPE={{.PType}}
 
 # Volume path to be used in podman quadlets
-MOLE_VOLUME_PATH={{.VolumePath}}
+MOLE_ROOT_PATH={{.VolumePath}}
 
 # Comma-separated list of services to start ("service-1,service-2").
 MOLE_SERVICES={{.Services}}
 
 # Three reserved ports for this deployment.
-MOLE_APP_PORT={{.PortApp}}
-MOLE_TWO_PORT={{.PortTwo}}
-MOLE_THREE_PORT={{.PortThree}}
+MOLE_PORT_APP={{.PortApp}}
+MOLE_PORT_TWO={{.PortTwo}}
+MOLE_PORT_THREE={{.PortThree}}
 
 # Random string to be used as a key when necessary
 MOLE_APP_KEY={{.AppKey}}
@@ -263,7 +263,7 @@ MOLE_APP_KEY={{.AppKey}}
 	be := baseEnvData{
 		PType:      pType.String(),
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
-		VolumePath: "/home/mole/volumes/" + project.Name,
+		VolumePath: "/home/mole/projects/" + project.Name,
 		Services:   "app",
 		PName:      project.Name,
 		PortApp:    mp[0],
