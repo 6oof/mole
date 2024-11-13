@@ -222,10 +222,12 @@ type baseEnvData struct {
 	PortApp    int
 	PortTwo    int
 	PortThree  int
+	DbName     string
+	DbUser     string
+	DbPassword string
 }
 
 // createProjectBaseEnv generates the base environment file for the project.
-// TODO: we should megre .env.example to the bottom of the env file
 func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 	domainTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
@@ -236,7 +238,7 @@ func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 # Available types: static, podman, systemd
 MOLE_PROJECT_TYPE={{.PType}}
 
-# Volume path to be used in podman quadlets
+# Project root path
 MOLE_ROOT_PATH={{.VolumePath}}
 
 # Comma-separated list of services to start ("service-1,service-2").
@@ -250,6 +252,11 @@ MOLE_PORT_THREE={{.PortThree}}
 # Random string to be used as a key when necessary
 MOLE_APP_KEY={{.AppKey}}
 
+# Database credentials
+MOLE_DB_NAME={{.DbName}}
+MOLE_DB_USER={{.DbUser}}
+MOLE_DB_PASS={{.DbPassword}}
+
 # User-defined environment variables can be added below.
 # Add your own variables here:`
 
@@ -258,7 +265,10 @@ MOLE_APP_KEY={{.AppKey}}
 		return err
 	}
 
-	key := helpers.GenerateAppKey()
+	key := helpers.GenerateRandomKey(32)
+	dbName := project.Name + "db" + helpers.GenerateRandomKey(8)
+	dbUser := project.Name + "user" + helpers.GenerateRandomKey(6)
+	dbPass := helpers.GenerateRandomKey(24)
 
 	be := baseEnvData{
 		PType:      pType.String(),
@@ -270,6 +280,9 @@ MOLE_APP_KEY={{.AppKey}}
 		PortTwo:    mp[1],
 		PortThree:  mp[2],
 		AppKey:     key,
+		DbName:     dbName,
+		DbUser:     dbUser,
+		DbPassword: dbPass,
 	}
 
 	tmpl, err := template.New("env").Parse(domainTemplate)
@@ -291,6 +304,7 @@ MOLE_APP_KEY={{.AppKey}}
 }
 
 // CreateProject creates a new project by cloning a repository and setting it up.
+// TODO: If applicable there should be a deply flag to imidiately deploy
 func CreateProject(newProject Project, projectType string) error {
 	pt, err := enums.IsProjectType(projectType)
 	if err != nil {

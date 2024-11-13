@@ -1,19 +1,21 @@
 package helpers
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 )
 
-func GenerateAppKey() string {
+func GenerateRandomKey(klen int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	const klen = 32
-
-	seed := rand.New(rand.NewSource(time.Now().Unix()))
 
 	key := make([]byte, klen)
 	for i := range key {
-		key[i] = charset[seed.Intn(len(charset))]
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			// Handle the error appropriately (could be logged or returned)
+			return ""
+		}
+		key[i] = charset[num.Int64()]
 	}
 
 	return string(key)

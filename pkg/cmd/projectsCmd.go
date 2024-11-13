@@ -70,6 +70,7 @@ to assist with further management commands.`,
 	},
 }
 
+// TODO: move validation to helpers
 var addProjectCmd = &cobra.Command{
 	Use:   "add [name]",
 	Short: "Add a new project",
