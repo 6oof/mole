@@ -14,7 +14,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// TODO: handle script deploys
 type projectDeployment struct {
 	projectType enums.ProjectType
 	envVars     map[string]string
@@ -40,8 +39,6 @@ func RunDeployment(projectNOI string, restart bool) error {
 			return err
 		}
 
-	case enums.Script:
-		fmt.Println("script")
 	}
 
 	return nil

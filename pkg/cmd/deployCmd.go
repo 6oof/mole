@@ -21,7 +21,7 @@ var deployCmd = &cobra.Command{
 Depending on the project type it will do the following:
 
 1. Git pull
-(2) Link all the services / run the deployment script
+(2) Link all the services
 (3) Start the services defined in .env`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
