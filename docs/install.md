@@ -34,36 +34,17 @@ chmod +x install.sh
 sudo ./install.sh
 ```
 
-#### Step 2: Exit Root and SSH as the Mole User
-
-After the script completes, exit the root account and log in as the `mole` user to verify the setup:
-
-```bash
-exit
-ssh mole@<your-server-ip>
-```
-
 Replace `<your-server-ip>` with your server's IP address.
 
-#### Step 3: Verify the Installation
+#### Step 2: Verify the Installation
 
 Once logged in as the `mole` user, check that the `mole` CLI is properly installed and accessible:
 
 ```bash
-mole --version
+mole version
 ```
 
 You should see the version number of Mole displayed.
-
-#### Step 4: Setup domains
-
-this step is required for Caddy not to fail on start.
-
-```bash
-mole domains setup your@email.com
-```
-
-this domain is used for ssl certificate alerts
 
 ### 3. Install Caddy
 
@@ -77,7 +58,32 @@ dnf copr enable @caddy/caddy
 dnf install caddy
 ```
 
-#### Step 2: Configure Caddy
+#### Step 2: Setup domains
+
+this step is required for Caddy not to fail on start. Make sure you don't setup your domains with root user to avoid permission errors
+
+```bash
+su mole
+```
+
+```bash
+mole domains setup your@email.com
+```
+
+```bash
+exit
+```
+
+this domain is used for ssl certificate alerts
+
+#### Step 3: Setup permissions
+
+```bash
+chown -R caddy:caddy /home/mole/domains
+chown -R caddy:caddy /home/mole/caddy
+```
+
+#### Step 4: Configure Caddy
 
 1. **Edit the Caddyfile**: Open the main configuration file located at `/etc/caddy/Caddyfile` with your preferred text editor.
 
@@ -88,10 +94,10 @@ dnf install caddy
 2. **Set Up the Caddyfile**: Replace the contents with the following:
 
    ```caddyfile
-   import /home/mole/caddy/main.caddy
+   import /etc/caddy/setup/main.caddy
    ```
 
-#### Step 3: Enable and Start Caddy Service
+#### Step 5: Enable and Start Caddy Service
 
 Reload the systemd daemon and enable the Caddy service:
 
@@ -100,7 +106,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now caddy
 ```
 
-#### Step 4: Check Caddy Status
+#### Step 6: Check Caddy Status
 
 To verify that Caddy is running:
 
@@ -114,14 +120,21 @@ sudo systemctl status caddy --no-pager
 
 If you need to allow a non-root user to reload the Caddy service without a password prompt, follow these steps:
 
-1. **Create or Edit the `polkit` Rule**:
-   Create a new rule in the `/etc/polkit-1/rules.d/` directory. This will allow users in a specific group to reload the Caddy service without authentication.
+1. **Create the `caddygroup`**:
+   Create a new group for Caddy:
 
    ```bash
-   sudo nano /etc/polkit-1/rules.d/99-caddygroup.rules
+   sudo groupadd caddygroup
    ```
 
-2. **Add the Rule for `systemd` Permissions**:
+2. **Create or Edit the `polkit` Rule**:
+   Create a new rule in the `/etc/polkit-1/rules.d/` directory to allow users in the `caddygroup` to reload the Caddy service without authentication.
+
+   ```bash
+   sudo vi /etc/polkit-1/rules.d/99-caddygroup.rules
+   ```
+
+3. **Add the Rule for `systemd` Permissions**:
    Add the following JavaScript code to this file:
 
    ```js
@@ -134,16 +147,17 @@ If you need to allow a non-root user to reload the Caddy service without a passw
    });
    ```
 
-3. **Ensure the User is in the Group**:
+4. **Ensure the User is in the Group**:
    Make sure your user is part of the `caddygroup`. You can check this with:
 
    ```bash
    sudo usermod -aG caddygroup mole
+   sudo usermod -aG caddygroup caddy
    ```
 
    Then log out and log back in to apply the group membership.
 
-4. **Restart the `polkit` Service**:
+5. **Restart the `polkit` Service**:
    After creating the rule, restart the `polkit` service for the changes to take effect:
 
    ```bash
