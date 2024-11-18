@@ -4,7 +4,7 @@
 
 ## Navigation
 
-- [Installation Guide](/docs/install.md)
+- [Server Installation Guide](/docs/install.md)
 - [Graceful Deployment Guide](/docs/graceful_deployment.md)
 - [Mole CLI Documentation](/docs/cli/mole.md)
 

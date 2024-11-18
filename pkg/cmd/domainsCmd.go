@@ -117,8 +117,9 @@ var addCaddyCmd = &cobra.Command{
 var addProxyCaddyCmd = &cobra.Command{
 	Use:   "proxy [project name/id]",
 	Short: "Add a reverse proxy for a domain",
-	Long:  `This command creates a reverse proxy configuration in Caddy for the specified project.`,
-	Args:  cobra.ExactArgs(1),
+	Long: `This command creates a reverse proxy configuration in Caddy for the specified project.
+	if an empty on 0 port flag is set, MOLE_PORT_APP env variable will be used instead.`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		a := strings.Join(args, " ")
 

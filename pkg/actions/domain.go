@@ -11,6 +11,7 @@ import (
 
 	"github.com/6oof/mole/pkg/consts"
 	"github.com/6oof/mole/pkg/helpers"
+	"github.com/joho/godotenv"
 )
 
 type domainData struct {
@@ -25,7 +26,6 @@ type domainSetup struct {
 }
 
 // AddDomainProxy generates and adds a reverse proxy configuration for the specified domain and port.
-// TODO: make port optional, and mole app port should be taken if no domain is specified
 func AddDomainProxy(projectNOI, domain string, port int) error {
 	if !helpers.ValidateCaddyDomain(domain) {
 		return fmt.Errorf("invalid domain format: %s", domain)
@@ -34,6 +34,13 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
 	project, err := FindProject(projectNOI)
 	if err != nil {
 		return fmt.Errorf("failed to find project %s: %w", projectNOI, err)
+	}
+
+	var templatePort int
+	if port == 0 {
+		templatePort = readDefaultProtFromEnv(projectNOI)
+	} else {
+		templatePort = port
 	}
 
 	domainTemplate := `www.{{.Domain}} {
@@ -46,7 +53,7 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
 
 	domainData := domainData{
 		Domain: domain,
-		Port:   strconv.Itoa(port),
+		Port:   strconv.Itoa(templatePort),
 	}
 
 	templateInstance, err := template.New("proxy").Parse(domainTemplate)
@@ -71,6 +78,26 @@ func AddDomainProxy(projectNOI, domain string, port int) error {
 	}
 
 	return nil
+}
+
+func readDefaultProtFromEnv(projectNOI string) int {
+	p, err := FindProject(projectNOI)
+	if err != nil {
+		return 0
+	}
+
+	projectEnv := path.Join(consts.GetBasePath(), "projects", p.Name, ".env")
+	env, err := godotenv.Read(projectEnv)
+	if err != nil {
+		return 0
+	}
+
+	port := env["MOLE_PORT_APP"]
+	i, err := strconv.Atoi(port)
+	if err != nil {
+		return 0
+	}
+	return i
 }
 
 // AddDomainStatic creates a static file server configuration for a specified domain and location.
