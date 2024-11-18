@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/6oof/mole/pkg/actions"
+	"github.com/zulubit/mole/pkg/actions"
 	"github.com/spf13/cobra"
 )
 

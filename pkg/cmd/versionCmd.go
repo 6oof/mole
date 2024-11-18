@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/6oof/mole/pkg/consts"
-	"github.com/6oof/mole/pkg/helpers"
+	"github.com/zulubit/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/helpers"
 	"github.com/spf13/cobra"
 )
 

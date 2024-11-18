@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/6oof/mole/pkg/consts"
-	"github.com/6oof/mole/pkg/helpers"
+	"github.com/zulubit/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/helpers"
 	"github.com/joho/godotenv"
 )
 

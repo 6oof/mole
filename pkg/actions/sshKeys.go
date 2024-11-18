@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/6oof/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/consts"
 	"github.com/charmbracelet/keygen"
 
 	"golang.org/x/crypto/ssh"

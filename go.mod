@@ -1,4 +1,4 @@
-module github.com/6oof/mole
+module github.com/zulubit/mole
 
 go 1.23.1
 

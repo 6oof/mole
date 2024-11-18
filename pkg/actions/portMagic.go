@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/6oof/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/consts"
 	"github.com/shirou/gopsutil/net"
 )
 

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/6oof/mole/pkg/cmd"
-	"github.com/6oof/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/cmd"
+	"github.com/zulubit/mole/pkg/consts"
 	"github.com/spf13/cobra/doc"
 )
 

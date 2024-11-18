@@ -5,7 +5,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/6oof/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/consts"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,8 +5,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/6oof/mole/pkg/consts"
-	"github.com/6oof/mole/pkg/enums"
+	"github.com/zulubit/mole/pkg/consts"
+	"github.com/zulubit/mole/pkg/enums"
 	"github.com/stretchr/testify/assert"
 )
 
