@@ -6,17 +6,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/zulubit/mole/pkg/cmd"
-	"github.com/zulubit/mole/pkg/consts"
 	"github.com/spf13/cobra/doc"
+	"github.com/zulubit/mole/pkg/cmd"
 )
 
 func main() {
-	env, ep := os.LookupEnv("MOLE_ENV_PROD")
-	if ep && env == "1" {
-		consts.BasePath = "/home/mole"
-	}
-
 	doc, dg := os.LookupEnv("MOLE_DOC")
 	if dg && doc == "1" {
 		generateDocs()
@@ -33,5 +27,4 @@ func generateDocs() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

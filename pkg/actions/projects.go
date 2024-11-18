@@ -12,11 +12,11 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gofrs/flock"
+	"github.com/lithammer/shortuuid/v4"
 	"github.com/zulubit/mole/pkg/consts"
 	"github.com/zulubit/mole/pkg/enums"
 	"github.com/zulubit/mole/pkg/helpers"
-	"github.com/gofrs/flock"
-	"github.com/lithammer/shortuuid/v4"
 )
 
 // Projects represents a collection of Project.
@@ -156,6 +156,11 @@ func addProject(newProject Project) error {
 // cloneProject clones a project from a given repository URL into the local file system.
 func cloneProject(project Project) error {
 	if !consts.Testing {
+		_, err := exec.LookPath("git")
+		if err != nil {
+			return errors.New("git is not installed or not available in PATH")
+		}
+
 		clonePath := path.Join(consts.GetBasePath(), "projects", project.Name)
 
 		var stErr bytes.Buffer

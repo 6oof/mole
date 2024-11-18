@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/joho/godotenv"
 	"github.com/zulubit/mole/pkg/consts"
 	"github.com/zulubit/mole/pkg/helpers"
-	"github.com/joho/godotenv"
 )
 
 type domainData struct {
@@ -116,7 +116,7 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 }
 
 {{.Domain}} {
-    root * /home/projects/{{.ProjectName}}/{{.Location}}
+    root * /home/mole/projects/{{.ProjectName}}/{{.Location}}
     file_server
 }`
 
@@ -151,28 +151,14 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 }
 
 // SetupDomains initializes the main Caddy configuration, enabling domain support with TLS.
+// TODO: figure out the experimental business
 func SetupDomains(email string) error {
 	if !helpers.ValidateEmail(email) {
 		return errors.New("invalid email provided")
 	}
 
 	domainTemplate := `{
-    email {{.Email}}
-    servers {
-        protocol {
-            experimental_http3
-        }
-    }
-}
-
-tls {
-    on_demand
-}
-
-header {
-    Accept-Encoding gzip, br
-    Content-Type * gzip
-    Content-Type * brotli
+	email {{.Email}}
 }
 
 import /home/mole/domains/*.caddy`
@@ -198,6 +184,17 @@ import /home/mole/domains/*.caddy`
 
 	if err := os.WriteFile(caddyFilePath, configBuffer.Bytes(), 0644); err != nil {
 		return fmt.Errorf("failed to write caddy configuration file %s: %w", caddyFilePath, err)
+	}
+
+	domainDirPath := path.Join(consts.GetBasePath(), "domains")
+
+	if err := os.MkdirAll(domainDirPath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", domainDirPath, err)
+	}
+
+	domainFilePath := path.Join(consts.GetBasePath(), "domains", "empty.caddy")
+	if err := os.WriteFile(domainFilePath, []byte{}, 0644); err != nil {
+		return fmt.Errorf("failed to write static domain configuration file %s: %w", domainFilePath, err)
 	}
 
 	return nil

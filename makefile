@@ -8,4 +8,4 @@ GOARCH := amd64
 # Build the app for Linux with production environment
 buildprod:
 	@echo "Building $(APP_NAME) for production..."
-	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 MOLE_ENV_PROD=1 go build -o $(OUTPUT_DIR)/$(APP_NAME) ./cmd/cli
+	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o $(OUTPUT_DIR)/$(APP_NAME) -ldflags "-X github.com/zulubit/mole/pkg/consts.BasePath=/home/mole" ./cmd/cli

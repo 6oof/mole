@@ -26,15 +26,11 @@ chmod 600 /home/mole/.ssh/authorized_keys
 echo -e "\n\033[0;32m### Step 3: Set a password for user 'mole' ###\033[0m"
 passwd mole
 
-# 4. Grant 'mole' permission to manage the Caddy service without password
-echo -e "\n\033[0;32m### Step 4: Grant mole permission to manage Caddy service ###\033[0m"
-echo "mole ALL=(root) NOPASSWD: /bin/systemctl restart caddy, /bin/systemctl reload caddy, /bin/systemctl status caddy" | sudo tee /etc/sudoers.d/caddy-management
-
-# 5. Grant 'mole' access to read Caddy logs
+# 4. Grant 'mole' access to read Caddy logs
 echo -e "\n\033[0;32m### Step 5: Add mole to the systemd-journal group for reading logs ###\033[0m"
 usermod -aG systemd-journal mole
 
-# 6. Install the Mole binary
+# 5. Install the Mole binary
 echo -e "\n\033[0;32m### Step 6: Install the Mole binary ###\033[0m"
 
 MOLE_VERSION="0.0.1" # Update with the correct version

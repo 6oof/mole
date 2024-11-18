@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/zulubit/mole/pkg/actions"
 	"github.com/spf13/cobra"
+	"github.com/zulubit/mole/pkg/actions"
 )
 
 func init() {
@@ -80,11 +80,7 @@ var reloadCaddyCmd = &cobra.Command{
 	Long: `Reload re-validates the current Caddy configuration file 
 	and reloads the Caddy service if validation succeeds.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c := exec.Command("sh", "-c", "caddy validate --config /home/mole/caddy/main.caddy")
-		co, _ := c.CombinedOutput()
-		fmt.Println(string(co))
-
-		reloadCmd := exec.Command("sh", "-c", "systemctl --user reload caddy")
+		reloadCmd := exec.Command("sh", "-c", "systemctl reload caddy")
 		reloadOut, err := reloadCmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("Failed to reload Caddy service: %v\n", err)
