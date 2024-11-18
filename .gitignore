@@ -1,3 +1,4 @@
 /false_location
 .env
 !pkg/actions/testing/test-project/.env
+.DS_Store
