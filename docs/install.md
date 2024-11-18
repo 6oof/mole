@@ -137,3 +137,36 @@ sudo firewall-cmd --list-all
 ```
 
 This should show that SSH, HTTP, and HTTPS are allowed for incoming traffic.
+
+### 5. Install Mole
+
+#### Step 1: Download and Run the Install Script
+
+Download the installation script and execute it:
+
+```bash
+curl -O https://raw.githubusercontent.com/zulubit/mole/main/install.sh
+chmod +x install.sh
+sudo ./install.sh
+```
+
+#### Step 2: Exit Root and SSH as the Mole User
+
+After the script completes, exit the root account and log in as the `mole` user to verify the setup:
+
+```bash
+exit
+ssh mole@<your-server-ip>
+```
+
+Replace `<your-server-ip>` with your server's IP address.
+
+#### Step 3: Verify the Installation
+
+Once logged in as the `mole` user, check that the `mole` CLI is properly installed and accessible:
+
+```bash
+mole --version
+```
+
+You should see the version number of Mole displayed.

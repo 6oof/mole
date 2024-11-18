@@ -34,4 +34,20 @@ echo "mole ALL=(root) NOPASSWD: /bin/systemctl restart caddy, /bin/systemctl rel
 echo -e "\n\033[0;32m### Step 5: Add mole to the systemd-journal group for reading logs ###\033[0m"
 usermod -aG systemd-journal mole
 
-echo -e "\n\033[0;32m### We're done! The user 'mole' can now manage the Caddy service, read logs, and use SSH. ###\033[0m"
+# 6. Install the Mole binary
+echo -e "\n\033[0;32m### Step 6: Install the Mole binary ###\033[0m"
+
+MOLE_VERSION="0.0.1" # Update with the correct version
+MOLE_BINARY_URL="https://github.com/zulubit/mole/releases/download/${MOLE_VERSION}/mole"
+MOLE_INSTALL_PATH="/usr/local/bin/mole"
+
+echo -e "Downloading Mole binary from ${MOLE_BINARY_URL}..."
+curl -L -o "$MOLE_INSTALL_PATH" "$MOLE_BINARY_URL"
+
+echo "Setting executable permissions on the binary..."
+chmod +x "$MOLE_INSTALL_PATH"
+
+echo "Changing ownership of the binary to 'mole' user..."
+chown mole:mole "$MOLE_INSTALL_PATH"
+
+echo -e "\n\033[0;32m### Installation complete. Mole is installed at ${MOLE_INSTALL_PATH}. ###\033[0m"
