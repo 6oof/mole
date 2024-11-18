@@ -1,12 +1,6 @@
-<pre>
-• ▌ ▄ ·.       ▄▄▌  ▄▄▄ .
-·██ ▐███▪▪     ██•  ▀▄.▀·
-▐█ ▌▐▌▐█· ▄█▀▄ ██▪  ▐▀▀▪▄
-██ ██▌▐█▌▐█▌.▐▌▐█▌▐▌▐█▄▄▌
-▀▀  █▪▀▀▀ ▀█▄▀▪.▀▀▀  ▀▀▀
-</pre>
+![Mole Logo](mole.svg)
    
-# Git Pull Deployment Server Manager ("micro PaaS") Focused on systemd
+# Micro PaaS for Efficient Git-based Deployments with Systemd
 
 ## Navigation
 
@@ -14,16 +8,23 @@
 - [Graceful Deployment Guide](/docs/graceful_deployment.md)
 - [Mole CLI Documentation](/docs/cli/mole.md)
 
-## Prerequisites
+## TLDR
 
-### This quickstart guide assumes a freshly provisioned VPS with the following:
+Mole is a micro PaaS that squeezes every bit of power from low-cost VPSes while keeping things simple and scalable. It handles Git-based deployments with systemd, SSH, Podman, and Caddy—minimal fuss required.
 
-- Running a distribution with **systemd** (minimum version 240).
-- SSH root access.
-- Caddy installed.
+Check out the navigation above to learn how to configure your server or deploy your project with Mole!
 
-**Note**: **Rocky Linux** was chosen due to better support for recent versions of **Podman**. If you'd like to use a different distribution, you may need to adjust the `install` and `enable` commands below.
+## Project Status
 
-## Quickstart
+Mole is in early development and may require some effort to set up. Most of the CLI is still subject to change.
 
-tbd
+Currently, I’m focused on improving and testing the CLI. Next, I’ll tackle a more streamlined setup process and a web dashboard for users who prefer not to use SSH.
+
+## TODO
+
+- [ ] Gather Feedback
+- [ ] Detailed Testing
+- [ ] CLI Improvements
+- [ ] Streamline Installation Process
+- [ ] Premade Projects Registry (Quick Deploys)
+- [ ] Web Dashboard

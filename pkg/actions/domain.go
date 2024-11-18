@@ -25,6 +25,7 @@ type domainSetup struct {
 }
 
 // AddDomainProxy generates and adds a reverse proxy configuration for the specified domain and port.
+// TODO: make port optional, and mole app port should be taken if no domain is specified
 func AddDomainProxy(projectNOI, domain string, port int) error {
 	if !helpers.ValidateCaddyDomain(domain) {
 		return fmt.Errorf("invalid domain format: %s", domain)

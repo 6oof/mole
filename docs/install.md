@@ -1,6 +1,8 @@
 # Install Mole
 
-## This is a detailed install script for Mole. It esentially produces the same result as the install script.
+## This is a detailed install script for Mole. This should Ideally be performed on a fresh server.
+
+This guide should produce an enviroment that is minimalistic and reasonably secure by default.
 
 ### Prerequisites
 
@@ -11,6 +13,8 @@
 - Caddy installed
 
 **Note**: **Rocky linux** was chosen due to better support for recent versions of **Podman**. If you'd like to use a different distribution, you may need to adjust the `install` and `enable` commands below.
+
+----
 
 ### 1. SSH into your newly created VPS as a root user
 
@@ -31,7 +35,7 @@ dnf install caddy
 1. **Edit the Caddyfile**: Open the main configuration file located at `/etc/caddy/Caddyfile` with your preferred text editor.
 
    ```bash
-   sudo vi /etc/caddy/Caddyfile
+   sudo nano /etc/caddy/Caddyfile
    ```
 
 2. **Set Up the Caddyfile**: Replace the contents with the following:
@@ -57,7 +61,7 @@ To verify that Caddy is running:
 sudo systemctl status caddy --no-pager
 ```
 
-You should see output indicating that the Caddy service is active and running.
+**You should see output indicating that the Caddy service is active and running.**
 
 #### Additional Resources
 
@@ -133,11 +137,3 @@ sudo firewall-cmd --list-all
 ```
 
 This should show that SSH, HTTP, and HTTPS are allowed for incoming traffic.
-
-## Important Files Created
-
-- `mole.json`: Placed in `/etc/mole/mole.json`.
-- Project repositories will be pulled to `/var/mole/{projectId}/`.
-- Caddy reverse proxy configuration in `/etc/caddy/Caddyfile`.
-
-**Note**: Ideally, these files should not be manually edited.

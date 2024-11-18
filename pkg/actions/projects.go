@@ -304,6 +304,7 @@ MOLE_DB_PASS={{.DbPassword}}
 }
 
 // CreateProject creates a new project by cloning a repository and setting it up.
+// TODO: create a merge .mole.env to use as an example
 func CreateProject(newProject Project, projectType string, deploy bool) error {
 	pt, err := enums.IsProjectType(projectType)
 	if err != nil {
