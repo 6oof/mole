@@ -85,3 +85,36 @@ func TestCreateProjectBaseEnv(t *testing.T) {
 	assert.Contains(t, string(f), "MOLE_PROJECT_TYPE=podman", "env contains the correct type")
 
 }
+
+func TestCreateProjectBaseEnvWithMerge(t *testing.T) {
+	consts.Testing = true
+
+	tmp := os.TempDir()
+	consts.BasePath = tmp
+	defer os.RemoveAll(tmp)
+
+	np := Project{
+		Name: "test-project",
+	}
+
+	addProject(np)
+
+	projectPath := path.Join(tmp, "projects", np.Name)
+	os.MkdirAll(projectPath, 0755)
+
+	// Create the .env.mole file with a test entry
+	envMoleContent := "MOLE_TEST_KEY=test_value"
+	err := os.WriteFile(path.Join(projectPath, ".env.mole"), []byte(envMoleContent), 0644)
+	assert.Nil(t, err, "example env file created")
+
+	fp, _ := FindProject(np.Name)
+	err = createProjectBaseEnv(fp, enums.Podman)
+	assert.Nil(t, err, "base env created")
+
+	f, err := os.ReadFile(path.Join(projectPath, ".env"))
+	assert.Nil(t, err, "env can be read")
+
+	// Check that the .env contains both the generated and merged values
+	assert.Contains(t, string(f), "MOLE_PROJECT_TYPE=podman", "env contains the correct type")
+	assert.Contains(t, string(f), "MOLE_TEST_KEY=test_value", "env contains the merged value from .env.mole")
+}

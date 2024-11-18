@@ -215,7 +215,7 @@ func ensureProjectVolume(project Project) error {
 type baseEnvData struct {
 	PType      string
 	EnvPath    string
-	VolumePath string
+	RootPath   string
 	Services   string
 	PName      string
 	AppKey     string
@@ -239,7 +239,7 @@ func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
 MOLE_PROJECT_TYPE={{.PType}}
 
 # Project root path
-MOLE_ROOT_PATH={{.VolumePath}}
+MOLE_ROOT_PATH={{.RootPath}}
 
 # Comma-separated list of services to start ("service-1,service-2").
 MOLE_SERVICES={{.Services}}
@@ -273,7 +273,7 @@ MOLE_DB_PASS={{.DbPassword}}
 	be := baseEnvData{
 		PType:      pType.String(),
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
-		VolumePath: "/home/mole/projects/" + project.Name,
+		RootPath:   "/home/mole/projects/" + project.Name,
 		Services:   "app",
 		PName:      project.Name,
 		PortApp:    mp[0],
@@ -295,6 +295,13 @@ MOLE_DB_PASS={{.DbPassword}}
 		return fmt.Errorf("failed to execute environment template: %w", err)
 	}
 
+	exampleEnv := readExampleEnv(be.PName)
+
+	if exampleEnv != nil {
+		ft.WriteString("\n\n")
+		ft.Write(exampleEnv)
+	}
+
 	efp := path.Join(consts.GetBasePath(), "projects", project.Name, ".env")
 	if err := os.WriteFile(efp, ft.Bytes(), 0644); err != nil {
 		return fmt.Errorf("failed to write environment file: %w", err)
@@ -303,8 +310,19 @@ MOLE_DB_PASS={{.DbPassword}}
 	return nil
 }
 
+// Merges .env.mole with the generated .env
+func readExampleEnv(projectName string) []byte {
+	path := path.Join(consts.BasePath, "projects", projectName, ".env.mole")
+
+	env, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+
+	return env
+}
+
 // CreateProject creates a new project by cloning a repository and setting it up.
-// TODO: create a merge .mole.env to use as an example
 func CreateProject(newProject Project, projectType string, deploy bool) error {
 	pt, err := enums.IsProjectType(projectType)
 	if err != nil {
