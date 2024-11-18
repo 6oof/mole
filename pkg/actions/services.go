@@ -207,13 +207,15 @@ func LinkServices(projectNOI string, sType enums.ProjectType) error {
 		return err
 	}
 
-	sourceDir := path.Join(consts.GetBasePath(), "projects", p.Name, "mole_services")
+	var sourceDir string
 	var destDir string
 
 	switch sType {
 	case enums.Systemd:
+		sourceDir = path.Join(consts.GetBasePath(), "projects", p.Name, "mole_services", "systemd")
 		destDir = path.Join(consts.GetBasePath(), ".config", "systemd", "user")
 	case enums.Podman:
+		sourceDir = path.Join(consts.GetBasePath(), "projects", p.Name, "mole_services", "podman")
 		destDir = path.Join(consts.GetBasePath(), ".config", "containers", "systemd")
 	default:
 		return fmt.Errorf("invalid service type %s or linking not necessary for the project of type %s", sType.String(), sType.String())
