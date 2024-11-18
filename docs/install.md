@@ -46,19 +46,7 @@ mole version
 
 You should see the version number of Mole displayed.
 
-### 3. Install Caddy
-
-#### Step 1: Install Caddy - Reverse Proxy to Manage Your Domains
-
-Run the following commands to install Caddy and its dependencies:
-
-```bash
-dnf install 'dnf-command(copr)'
-dnf copr enable @caddy/caddy
-dnf install caddy
-```
-
-#### Step 2: Setup domains
+#### Step 3: Setup domains
 
 this step is required for Caddy not to fail on start. Make sure you don't setup your domains with root user to avoid permission errors
 
@@ -74,95 +62,27 @@ mole domains setup your@email.com
 exit
 ```
 
-this domain is used for ssl certificate alerts
+### 3. Install Caddy
 
-#### Step 3: Setup permissions
+#### Step 1: Install Caddy - Reverse Proxy to Manage Your Domains
+
+Run the following commands to install Caddy and its dependencies:
 
 ```bash
-chown -R caddy:caddy /home/mole/domains
-chown -R caddy:caddy /home/mole/caddy
+dnf install 'dnf-command(copr)' -y
+dnf copr enable @caddy/caddy -y
+dnf install caddy -y
 ```
+this domain is used for ssl certificate alerts
 
-#### Step 4: Configure Caddy
+#### Step 5: Enable and Start Caddy API Service
 
-1. **Edit the Caddyfile**: Open the main configuration file located at `/etc/caddy/Caddyfile` with your preferred text editor.
-
-   ```bash
-   sudo vi /etc/caddy/Caddyfile
-   ```
-
-2. **Set Up the Caddyfile**: Replace the contents with the following:
-
-   ```caddyfile
-   import /etc/caddy/setup/main.caddy
-   ```
-
-#### Step 5: Enable and Start Caddy Service
-
-Reload the systemd daemon and enable the Caddy service:
+Reload the systemd daemon and enable the Caddy API service:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now caddy
+sudo systemctl enable --now caddy-api
 ```
-
-#### Step 6: Check Caddy Status
-
-To verify that Caddy is running:
-
-```bash
-sudo systemctl status caddy --no-pager
-```
-
-**You should see output indicating that the Caddy service is active and running.**
-
-#### Step 5: Allow User to Reload Caddy Without a Password Prompt
-
-If you need to allow a non-root user to reload the Caddy service without a password prompt, follow these steps:
-
-1. **Create the `caddygroup`**:
-   Create a new group for Caddy:
-
-   ```bash
-   sudo groupadd caddygroup
-   ```
-
-2. **Create or Edit the `polkit` Rule**:
-   Create a new rule in the `/etc/polkit-1/rules.d/` directory to allow users in the `caddygroup` to reload the Caddy service without authentication.
-
-   ```bash
-   sudo vi /etc/polkit-1/rules.d/99-caddygroup.rules
-   ```
-
-3. **Add the Rule for `systemd` Permissions**:
-   Add the following JavaScript code to this file:
-
-   ```js
-   polkit.addRule(function(action, subject) {
-       if (action.id == "org.freedesktop.systemd1.manage-units" &&
-           action.lookup("unit") == "caddy.service" &&
-           subject.isInGroup("caddygroup")) {
-               return polkit.Result.YES;
-       }
-   });
-   ```
-
-4. **Ensure the User is in the Group**:
-   Make sure your user is part of the `caddygroup`. You can check this with:
-
-   ```bash
-   sudo usermod -aG caddygroup mole
-   sudo usermod -aG caddygroup caddy
-   ```
-
-   Then log out and log back in to apply the group membership.
-
-5. **Restart the `polkit` Service**:
-   After creating the rule, restart the `polkit` service for the changes to take effect:
-
-   ```bash
-   sudo systemctl restart polkit
-   ```
 
 #### Additional Resources
 

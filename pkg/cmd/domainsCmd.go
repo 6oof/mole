@@ -77,17 +77,20 @@ var listTakenPortsCmd = &cobra.Command{
 var reloadCaddyCmd = &cobra.Command{
 	Use:   "reload",
 	Short: "Reload the Caddy service configuration",
-	Long: `Reload re-validates the current Caddy configuration file 
-	and reloads the Caddy service if validation succeeds.`,
+	Long: `Reload collects the main Caddyfile and all partial configurations, 
+	merges them, and sends them to the Caddy API.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		reloadCmd := exec.Command("sh", "-c", "systemctl reload caddy")
-		reloadOut, err := reloadCmd.CombinedOutput()
+		mainFilePath := "/home/mole/caddy/main.caddy"
+		domainsDir := "/home/mole/domains"
+		apiURL := "http://localhost:2019"
+
+		err := actions.ReloadCaddy(mainFilePath, domainsDir, apiURL)
 		if err != nil {
-			fmt.Printf("Failed to reload Caddy service: %v\n", err)
+			fmt.Printf("Failed to reload Caddy configuration: %v\n", err)
 			return
 		}
-		fmt.Println("Caddy service reloaded successfully.")
-		fmt.Println(string(reloadOut))
+
+		fmt.Println("Caddy configuration reloaded successfully.")
 	},
 }
 

@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/joho/godotenv"
@@ -14,6 +18,8 @@ import (
 	"github.com/zulubit/mole/pkg/helpers"
 )
 
+// TODO: sadly api is the way to go. this will take some doing
+// we should really collect all congigs in a single file and send them to the api to load
 type domainData struct {
 	Domain      string
 	Port        string
@@ -206,6 +212,52 @@ func DeleteProjectDomain(projectName string) error {
 
 	if err := os.Remove(domainFilePath); err != nil {
 		return fmt.Errorf("failed to delete project domain configuration %s: %w", domainFilePath, err)
+	}
+
+	return nil
+}
+
+// ReloadCaddy reads the main Caddyfile and partials, consolidates them, and sends to the API.
+func ReloadCaddy(mainFilePath, domainsDir, apiURL string) error {
+	var caddyfileBuilder strings.Builder
+
+	// Read the main Caddyfile
+	mainCaddyContent, err := os.ReadFile(mainFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to read main Caddyfile %s: %w", mainFilePath, err)
+	}
+	caddyfileBuilder.Write(mainCaddyContent)
+	caddyfileBuilder.WriteString("\n\n")
+
+	// Read all partial Caddyfiles in the domains directory
+	err = filepath.Walk(domainsDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".caddy") {
+			content, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return fmt.Errorf("failed to read Caddyfile fragment %s: %w", path, readErr)
+			}
+			caddyfileBuilder.Write(content)
+			caddyfileBuilder.WriteString("\n\n")
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to gather Caddyfiles: %w", err)
+	}
+
+	// Send the consolidated Caddyfile to the API
+	resp, err := http.Post(fmt.Sprintf("%s/load", apiURL), "text/caddyfile", bytes.NewBufferString(caddyfileBuilder.String()))
+	if err != nil {
+		return fmt.Errorf("failed to send consolidated Caddyfile to Caddy API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("Caddy API returned status: %s\nDetails: %s", resp.Status, string(body))
 	}
 
 	return nil
