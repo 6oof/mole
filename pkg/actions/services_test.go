@@ -5,9 +5,9 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/zulubit/mole/pkg/consts"
 	"github.com/zulubit/mole/pkg/enums"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLinkUnlinkServices(t *testing.T) {
@@ -23,11 +23,19 @@ func TestLinkUnlinkServices(t *testing.T) {
 	addProject(np)
 
 	sfp := path.Join(tmp, "projects", np.Name, "mole_services")
+	sfps := path.Join(tmp, "projects", np.Name, "mole_services", "systemd")
+	sfpp := path.Join(tmp, "projects", np.Name, "mole_services", "podman")
 	os.MkdirAll(sfp, 0755)
-	os.WriteFile(path.Join(sfp, "asdf.service"), []byte("asdf"), 0755)
-	os.WriteFile(path.Join(sfp, "aaa.container"), []byte("asdf"), 0755)
+	os.MkdirAll(sfps, 0755)
+	os.MkdirAll(sfpp, 0755)
 
-	_, err := os.ReadFile(path.Join(sfp, "asdf.service"))
+	os.WriteFile(path.Join(sfp, "systemd", "asdf.service"), []byte("asdf"), 0755)
+	os.WriteFile(path.Join(sfp, "systemd", "aaa.container"), []byte("asdf"), 0755)
+
+	os.WriteFile(path.Join(sfp, "podman", "asdf.service"), []byte("asdf"), 0755)
+	os.WriteFile(path.Join(sfp, "podman", "aaa.container"), []byte("asdf"), 0755)
+
+	_, err := os.ReadFile(path.Join(sfp, "systemd", "asdf.service"))
 	assert.Nil(t, err, "test was setup correctly")
 
 	err = LinkServices(np.Name, enums.Static)
