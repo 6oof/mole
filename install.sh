@@ -22,16 +22,12 @@ cp /root/.ssh/authorized_keys /home/mole/.ssh/authorized_keys
 chown mole:mole /home/mole/.ssh/authorized_keys
 chmod 600 /home/mole/.ssh/authorized_keys
 
-# 3. Set password for the 'mole' user
-echo -e "\n\033[0;32m### Step 3: Set a password for user 'mole' ###\033[0m"
-passwd mole
-
 # 4. Grant 'mole' access to read Caddy logs
-echo -e "\n\033[0;32m### Step 5: Add mole to the systemd-journal group for reading logs ###\033[0m"
+echo -e "\n\033[0;32m### Step 3: Add mole to the systemd-journal group for reading logs ###\033[0m"
 usermod -aG systemd-journal mole
 
 # 5. Install the Mole binary
-echo -e "\n\033[0;32m### Step 6: Install the Mole binary ###\033[0m"
+echo -e "\n\033[0;32m### Step 4: Install the Mole binary ###\033[0m"
 
 MOLE_VERSION="0.0.1" # Update with the correct version
 MOLE_BINARY_URL="https://github.com/zulubit/mole/releases/download/${MOLE_VERSION}/mole"

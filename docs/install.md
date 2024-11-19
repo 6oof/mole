@@ -75,7 +75,17 @@ dnf install caddy -y
 ```
 this domain is used for ssl certificate alerts
 
-#### Step 5: Enable and Start Caddy API Service
+
+#### Step 2: Set permissions
+
+```bash
+usermod -aG mole caddy
+chmod 750 /home/mole
+chmod -R 770 /home/mole/projects
+chmod g+s /home/mole/projects
+```
+
+#### Step 3: Enable and Start Caddy API Service
 
 Reload the systemd daemon and enable the Caddy API service:
 
@@ -96,7 +106,7 @@ Run the following command to install Podman:
 
 ```bash
 sudo dnf copr enable rhcontainerbot/podman-next -y
-sudo dnf install podman
+sudo dnf install podman -y
 ```
 
 **NOTE: this uses the copr (testing) version of podman to get all features. If this is too bleeding edge for you, only run the second command from the two provided above.**
