@@ -14,6 +14,22 @@ Mole is a micro PaaS that squeezes every bit of power from low-cost VPSes while 
 
 Check out the navigation above to learn how to configure your server or deploy your project with Mole!
 
+## Quick install - Rocky linux
+
+**Requirements:**
+
+- Freshly provisioned Rocky linux VPS.
+- SSH access to the root account.
+
+```bash
+curl -O https://raw.githubusercontent.com/zulubit/mole/main/install-rocky.sh
+chmod +x install-rocky.sh
+./install-rocky.sh
+rm install-rocky.sh
+```
+
+For detailed install guide navigate to the [Server Installation Guide](/docs/install.md)
+
 ## Project Status
 
 Mole is in early development and may require some effort to set up. Most of the CLI is still subject to change.

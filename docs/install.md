@@ -6,7 +6,6 @@ This guide should produce an enviroment that is minimalistic and reasonably secu
 
 ### Prerequisites
 
-<!--TODO: make sure you add git install isntructions-->
 #### This quicstart guide assumes a freshly provisioned VPS with the following:
 
 - Running a distribution wiht **systemd** (minimum version 240).
@@ -31,7 +30,7 @@ Download the installation script and execute it:
 ```bash
 curl -O https://raw.githubusercontent.com/zulubit/mole/main/install.sh
 chmod +x install.sh
-sudo ./install.sh
+./install.sh
 ```
 
 Replace `<your-server-ip>` with your server's IP address.
@@ -81,8 +80,6 @@ this domain is used for ssl certificate alerts
 ```bash
 usermod -aG mole caddy
 chmod 750 /home/mole
-chmod -R 770 /home/mole/projects
-chmod g+s /home/mole/projects
 ```
 
 #### Step 3: Enable and Start Caddy API Service
@@ -90,8 +87,8 @@ chmod g+s /home/mole/projects
 Reload the systemd daemon and enable the Caddy API service:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now caddy-api
+systemctl daemon-reload
+systemctl enable --now caddy-api
 ```
 
 #### Additional Resources
@@ -105,8 +102,8 @@ sudo systemctl enable --now caddy-api
 Run the following command to install Podman:
 
 ```bash
-sudo dnf copr enable rhcontainerbot/podman-next -y
-sudo dnf install podman -y
+dnf copr enable rhcontainerbot/podman-next -y
+dnf install podman -y
 ```
 
 **NOTE: this uses the copr (testing) version of podman to get all features. If this is too bleeding edge for you, only run the second command from the two provided above.**
@@ -126,14 +123,14 @@ To ensure your server is secure, you can set up a firewall using **firewalld**. 
 #### Step 1: Install firewalld
 
 ```bash
-sudo dnf install firewalld
+dnf install firewalld
 ```
 
 #### Step 2: Start and Enable the Firewall
 
 ```bash
-sudo systemctl start firewalld
-sudo systemctl enable firewalld
+systemctl start firewalld
+systemctl enable firewalld
 ```
 
 #### Step 3: Configure Allowed Ports
@@ -141,25 +138,25 @@ sudo systemctl enable firewalld
 1. Allow SSH (port 22):
 
    ```bash
-   sudo firewall-cmd --permanent --add-service=ssh
+   firewall-cmd --permanent --add-service=ssh
    ```
 
 2. Allow HTTP (port 80):
 
    ```bash
-   sudo firewall-cmd --permanent --add-service=http
+   firewall-cmd --permanent --add-service=http
    ```
 
 3. Allow HTTPS (port 443):
 
    ```bash
-   sudo firewall-cmd --permanent --add-service=https
+   firewall-cmd --permanent --add-service=https
    ```
 
 #### Step 4: Reload Firewall Rules
 
 ```bash
-sudo firewall-cmd --reload
+firewall-cmd --reload
 ```
 
 #### Step 5: Verify Active Firewall Rules
@@ -167,10 +164,16 @@ sudo firewall-cmd --reload
 To check if the correct rules are in place:
 
 ```bash
-sudo firewall-cmd --list-all
+firewall-cmd --list-all
 ```
 
 This should show that SSH, HTTP, and HTTPS (next to services:) are allowed for incoming traffic.
+
+### 6. Install git
+
+```bash
+dnf install git
+```
 
 ## Choosing a different distribution
 
@@ -179,20 +182,20 @@ This guide is optimized for **Rocky Linux** and other **RHEL-based** distros (li
 ### Adjustments for Ubuntu/Debian-based Distros:
 
 - **Package Manager**: Replace `dnf` with `apt` in the installation commands:
-  - For example, use `sudo apt install caddy` instead of `dnf install caddy`.
+  - For example, use `apt install caddy` instead of `dnf install caddy`.
   
 - **Firewall**: If using **UFW** instead of `firewalld`, replace `firewall-cmd` commands with UFW commands:
-  - `sudo ufw allow ssh`
-  - `sudo ufw allow http`
-  - `sudo ufw allow https`
+  - `ufw allow ssh`
+  - `ufw allow http`
+  - `ufw allow https`
 
 - **Podman**: Use the `apt` equivalent for installing Podman:
-  - `sudo apt install podman` (or follow [Podman installation for Ubuntu](https://podman.io/getting-started/installation)).
+  - `apt install podman` (or follow [Podman installation for Ubuntu](https://podman.io/getting-started/installation)).
 
 - **Polkit**: On **Ubuntu/Debian-based** systems, **polkit** is typically used differently. You may need to manage permissions via **sudoers** instead of using `polkit` for user access. For example:
   - Edit the `sudoers` file to allow the user to reload Caddy without a password:
     ```bash
-    sudo visudo
+    visudo
     ```
     Add this line to the file:
     ```bash

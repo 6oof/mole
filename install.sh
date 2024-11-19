@@ -22,11 +22,11 @@ cp /root/.ssh/authorized_keys /home/mole/.ssh/authorized_keys
 chown mole:mole /home/mole/.ssh/authorized_keys
 chmod 600 /home/mole/.ssh/authorized_keys
 
-# 4. Grant 'mole' access to read Caddy logs
+# 3. Grant 'mole' access to read Caddy logs
 echo -e "\n\033[0;32m### Step 3: Add mole to the systemd-journal group for reading logs ###\033[0m"
 usermod -aG systemd-journal mole
 
-# 5. Install the Mole binary
+# 4. Install the Mole binary
 echo -e "\n\033[0;32m### Step 4: Install the Mole binary ###\033[0m"
 
 MOLE_VERSION="0.0.1" # Update with the correct version
@@ -42,4 +42,14 @@ chmod +x "$MOLE_INSTALL_PATH"
 echo "Changing ownership of the binary to 'mole' user..."
 chown mole:mole "$MOLE_INSTALL_PATH"
 
+# 5. Configure .bashrc to execute 'mole' on login
+echo -e "\n\033[0;32m### Step 5: Configure .bashrc for the 'mole' user ###\033[0m"
+
+echo -e "\n# Automatically launch the Mole CLI on login" >> /home/mole/.bashrc
+echo "$MOLE_INSTALL_PATH" >> /home/mole/.bashrc
+
+# Ensure proper ownership of .bashrc
+chown mole:mole /home/mole/.bashrc
+
 echo -e "\n\033[0;32m### Installation complete. Mole is installed at ${MOLE_INSTALL_PATH}. ###\033[0m"
+

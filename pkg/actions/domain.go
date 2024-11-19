@@ -157,7 +157,6 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 }
 
 // SetupDomains initializes the main Caddy configuration, enabling domain support with TLS.
-// TODO: figure out the experimental business
 func SetupDomains(email string) error {
 	if !helpers.ValidateEmail(email) {
 		return errors.New("invalid email provided")
@@ -166,8 +165,7 @@ func SetupDomains(email string) error {
 	domainTemplate := `{
 	email {{.Email}}
 }
-
-import /home/mole/domains/*.caddy`
+`
 
 	domainSetupData := domainSetup{Email: email}
 
