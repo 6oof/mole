@@ -4,33 +4,28 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zulubit/mole/pkg/actions"
 	"github.com/spf13/cobra"
+	"github.com/zulubit/mole/pkg/actions"
 )
 
 func init() {
 	RootCmd.AddCommand(deployCmd)
-	deployCmd.Flags().BoolVar(&restartOnDeplyFlag, "restart", false, "restarts services instead or reloading on deployment")
 }
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy [project name/id]",
 	Short: "Deploy triggers project deployment",
 	Long: `Deploy triggers project deployment.
-
-Depending on the project type it will do the following:
-
-1. Git pull
-(2) Link all the services
-(3) Start the services defined in .env`,
+This will resolve your mole templates and run the deploy script.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := actions.RunDeployment(strings.Join(args, ""), restartOnDeplyFlag)
+		succ, err := actions.RunDeployment(strings.Join(args, ""))
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
 
+		fmt.Println(succ)
 		fmt.Println("Deployment succeeded.")
 	},
 }

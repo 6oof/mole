@@ -15,9 +15,10 @@ import (
 	"github.com/gofrs/flock"
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/zulubit/mole/pkg/consts"
-	"github.com/zulubit/mole/pkg/enums"
 	"github.com/zulubit/mole/pkg/helpers"
 )
+
+// TODO: rework projects so they can only accept static or docker
 
 // Projects represents a collection of Project.
 type Projects struct {
@@ -205,20 +206,8 @@ func containsEnvEntry(content string) bool {
 	return false
 }
 
-// ensureProjectVolume ensures that a directory for the project volume exists.
-func ensureProjectVolume(project Project) error {
-	volumePath := path.Join(consts.GetBasePath(), "volumes", project.Name)
-
-	if err := os.MkdirAll(volumePath, 0755); err != nil {
-		return fmt.Errorf("failed to create project volume directory: %w", err)
-	}
-
-	return nil
-}
-
 // baseEnvData holds the data for generating the environment configuration.
 type baseEnvData struct {
-	PType      string
 	EnvPath    string
 	RootPath   string
 	Services   string
@@ -233,15 +222,14 @@ type baseEnvData struct {
 }
 
 // createProjectBaseEnv generates the base environment file for the project.
-func createProjectBaseEnv(project Project, pType enums.ProjectType) error {
+func createProjectBaseEnv(project Project) error {
 	envTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
 # This configuration is necessary for the project to work properly.
 # Static path to this file on mole managed servers is:
 # {{.EnvPath}}
 
-# Available types: static, podman, systemd
-MOLE_PROJECT_TYPE={{.PType}}
+# MOLE_PROJECT_NAME={{.PName}}
 
 # Project root path
 MOLE_ROOT_PATH={{.RootPath}}
@@ -276,7 +264,6 @@ MOLE_DB_PASS={{.DbPassword}}
 	dbPass := helpers.GenerateRandomKey(24)
 
 	be := baseEnvData{
-		PType:      pType.String(),
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		RootPath:   "/home/mole/projects/" + project.Name,
 		Services:   "app",
@@ -328,11 +315,7 @@ func readExampleEnv(projectName string) []byte {
 }
 
 // CreateProject creates a new project by cloning a repository and setting it up.
-func CreateProject(newProject Project, projectType string, deploy bool) error {
-	pt, err := enums.IsProjectType(projectType)
-	if err != nil {
-		return err
-	}
+func CreateProject(newProject Project) error {
 
 	clonePath := path.Join(consts.GetBasePath(), "projects", newProject.Name)
 
@@ -345,12 +328,7 @@ func CreateProject(newProject Project, projectType string, deploy bool) error {
 		return err
 	}
 
-	if err := ensureProjectVolume(newProject); err != nil {
-		os.RemoveAll(clonePath) // Clean up on error
-		return err
-	}
-
-	if err := createProjectBaseEnv(newProject, pt); err != nil {
+	if err := createProjectBaseEnv(newProject); err != nil {
 		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
@@ -358,13 +336,6 @@ func CreateProject(newProject Project, projectType string, deploy bool) error {
 	if err := addProject(newProject); err != nil {
 		os.RemoveAll(clonePath) // Clean up on error
 		return err
-	}
-
-	if deploy {
-		err := RunDeployment(newProject.Name, false)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

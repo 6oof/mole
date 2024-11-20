@@ -5,12 +5,12 @@ import (
 	"path"
 	"testing"
 
-	"github.com/zulubit/mole/pkg/consts"
 	"github.com/stretchr/testify/assert"
+	"github.com/zulubit/mole/pkg/consts"
 )
 
 var successDomainProxy = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    reverse_proxy 127.0.0.1:3000\n}"
-var successDomainStatic = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    root * /home/projects/test/\n    file_server\n}"
+var successDomainStatic = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    root * /home/mole/projects/test/\n    file_server\n}"
 
 func TestAddDomainProxy(t *testing.T) {
 	consts.Testing = true
@@ -65,7 +65,7 @@ func TestAddDomainStatic(t *testing.T) {
 	d, err := os.ReadFile(path.Join(consts.BasePath, "domains", p.Name+".caddy"))
 	assert.Nil(t, err, "domain should exist")
 	assert.Contains(t, string(d), "test.com")
-	assert.Contains(t, string(d), "root * /home/projects/test/")
+	assert.Contains(t, string(d), "root * /home/mole/projects/test/")
 	assert.Equal(t, successDomainStatic, string(d), "created .caddy content should match expected")
 
 	// making sure the domain passed gets validated
@@ -77,7 +77,7 @@ func TestAddDomainStatic(t *testing.T) {
 	d, err = os.ReadFile(path.Join(consts.BasePath, "domains", p.Name+".caddy"))
 	assert.Nil(t, err, "domain should be able to be changed")
 	assert.Contains(t, string(d), "two.com")
-	assert.Contains(t, string(d), "root * /home/projects/test/inner")
+	assert.Contains(t, string(d), "root * /home/mole/projects/test/inner")
 
 }
 

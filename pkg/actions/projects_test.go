@@ -5,9 +5,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/zulubit/mole/pkg/consts"
-	"github.com/zulubit/mole/pkg/enums"
 	"github.com/stretchr/testify/assert"
+	"github.com/zulubit/mole/pkg/consts"
 )
 
 func TestAddReadFindProject(t *testing.T) {
@@ -77,12 +76,12 @@ func TestCreateProjectBaseEnv(t *testing.T) {
 	os.MkdirAll(path.Join(tmp, "projects", np.Name), 0755)
 
 	fp, _ := FindProject(np.Name)
-	err := createProjectBaseEnv(fp, enums.Podman)
+	err := createProjectBaseEnv(fp)
 	assert.Nil(t, err, "base env created")
 
 	f, err := os.ReadFile(path.Join(tmp, "projects", np.Name, ".env"))
 	assert.Nil(t, err, "env can be read")
-	assert.Contains(t, string(f), "MOLE_PROJECT_TYPE=podman", "env contains the correct type")
+	assert.Contains(t, string(f), "MOLE_PROJECT_NAME=test-project", "env contains the correct type")
 
 }
 
@@ -108,13 +107,13 @@ func TestCreateProjectBaseEnvWithMerge(t *testing.T) {
 	assert.Nil(t, err, "example env file created")
 
 	fp, _ := FindProject(np.Name)
-	err = createProjectBaseEnv(fp, enums.Podman)
+	err = createProjectBaseEnv(fp)
 	assert.Nil(t, err, "base env created")
 
 	f, err := os.ReadFile(path.Join(projectPath, ".env"))
 	assert.Nil(t, err, "env can be read")
 
 	// Check that the .env contains both the generated and merged values
-	assert.Contains(t, string(f), "MOLE_PROJECT_TYPE=podman", "env contains the correct type")
+	assert.Contains(t, string(f), "MOLE_PROJECT_NAME=test-project", "env contains the correct type")
 	assert.Contains(t, string(f), "MOLE_TEST_KEY=test_value", "env contains the merged value from .env.mole")
 }

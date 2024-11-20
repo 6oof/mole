@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/zulubit/mole/pkg/actions"
 	"github.com/zulubit/mole/pkg/helpers"
-	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -20,10 +20,7 @@ func init() {
 	addProjectCmd.MarkFlagRequired("repository")
 	addProjectCmd.Flags().StringVarP(&branchFlag, "branch", "b", "", "Branch *required")
 	addProjectCmd.MarkFlagRequired("branch")
-	addProjectCmd.Flags().StringVarP(&pTypeFlag, "type", "t", "", "Type *required")
-	addProjectCmd.MarkFlagRequired("type")
 	addProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Description")
-	addProjectCmd.Flags().BoolVar(&deployAfterCreateFlag, "deploy", false, "Deploy after create")
 	projectsRootCmd.AddCommand(addProjectCmd)
 
 	editProjectCmd.Flags().StringVarP(&descriptionFlag, "description", "d", "", "Change description")
@@ -93,7 +90,7 @@ Optionally, you can add a description.`,
 			Branch:        branchFlag,
 		}
 
-		err := actions.CreateProject(np, pTypeFlag, deployAfterCreateFlag)
+		err := actions.CreateProject(np)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -103,6 +100,7 @@ Optionally, you can add a description.`,
 	},
 }
 
+// TODO: delete needs to actually delete something
 var deleteProjectCmd = &cobra.Command{
 	Use:   "delete [name/id]",
 	Short: "Delete a project by name or ID",
@@ -111,12 +109,7 @@ This command marks the project as deleted and can also disable any
 associated services to ensure clean removal.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := actions.DisableStopAndUnlinkServices(strings.Join(args, " "))
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		err = actions.DeleteProject(strings.Join(args, " "))
+		err := actions.DeleteProject(strings.Join(args, " "))
 		if err != nil {
 			fmt.Println(err.Error())
 			return

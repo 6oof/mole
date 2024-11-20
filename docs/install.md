@@ -1,25 +1,29 @@
-# Install Mole
+# Install Mole 
 
-## This is a detailed install script for Mole. This should Ideally be performed on a fresh server.
+## This is a detailed install script for Mole. This should ideally be performed on a fresh server.
 
-This guide should produce an enviroment that is minimalistic and reasonably secure by default.
+This guide aims to produce an environment that is minimalistic and reasonably secure by default.
+
+---
 
 ### Prerequisites
 
-#### This quicstart guide assumes a freshly provisioned VPS with the following:
+#### This quickstart guide assumes a freshly provisioned VPS with the following:
 
-- Running a distribution wiht **systemd** (minimum version 240).
+- Running a distribution with **systemd** (minimum version 240).
 - SSH root access.
-- Ability to install Caddy
-- Ability to reload caddy systemd service without root
-- Ability to isntall git
-- Ability to isntall Podman
+- Ability to install Caddy.
+- Ability to reload the Caddy systemd service without root access.
+- Ability to install Git.
+- Ability to install Docker and Docker Compose.
 
-**Note**: **Rocky linux** is recommended for its stability and strong support for server environments as well as support for recent versions of **Podman**. If you'd like to use a different distribution, you may need to some adjustments to the steps below. notes on choosing a different distro can be found on the bottom of this document.
+**Note**: **Rocky Linux** is recommended for its stability and strong support for server environments as well as support for **Docker**. If you'd like to use a different distribution, you may need to make some adjustments to the steps below. Notes on choosing a different distro can be found at the bottom of this document.
 
-----
+---
 
 ### 1. SSH into your newly created VPS as a root user
+
+---
 
 ### 2. Install Mole
 
@@ -33,8 +37,6 @@ chmod +x install.sh
 ./install.sh
 ```
 
-Replace `<your-server-ip>` with your server's IP address.
-
 #### Step 2: Verify the Installation
 
 Once logged in as the `mole` user, check that the `mole` CLI is properly installed and accessible:
@@ -45,9 +47,9 @@ mole version
 
 You should see the version number of Mole displayed.
 
-#### Step 3: Setup domains
+#### Step 3: Set Up Domains
 
-this step is required for Caddy not to fail on start. Make sure you don't setup your domains with root user to avoid permission errors
+This step is required for Caddy not to fail on start. Make sure you don't set up your domains with the root user to avoid permission errors.
 
 ```bash
 su mole
@@ -61,6 +63,8 @@ mole domains setup your@email.com
 exit
 ```
 
+---
+
 ### 3. Install Caddy
 
 #### Step 1: Install Caddy - Reverse Proxy to Manage Your Domains
@@ -72,10 +76,8 @@ dnf install 'dnf-command(copr)' -y
 dnf copr enable @caddy/caddy -y
 dnf install caddy -y
 ```
-this domain is used for ssl certificate alerts
 
-
-#### Step 2: Set permissions
+#### Step 2: Set Permissions
 
 ```bash
 usermod -aG mole caddy
@@ -95,26 +97,59 @@ systemctl enable --now caddy-api
 
 - [Caddy RHEL Installation Documentation](https://caddyserver.com/docs/install#fedora-redhat-centos)
 
-### 4. Install Podman
+---
 
-#### Step 1: Install Podman
+### 4. Install Docker and Docker Compose
 
-Run the following command to install Podman:
+#### Step 1: Install Docker
 
-```bash
-dnf copr enable rhcontainerbot/podman-next -y
-dnf install podman -y
-```
-
-**NOTE: this uses the copr (testing) version of podman to get all features. If this is too bleeding edge for you, only run the second command from the two provided above.**
-
-#### Step 2: Verify the Installation
-
-Check that Podman is installed correctly:
+Run the following commands to install Docker:
 
 ```bash
-podman --version
+dnf install -y dnf-plugins-core
+dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin -y
 ```
+
+#### Step 2: Enable and Start Docker
+
+Start the Docker service and enable it to run on boot:
+
+```bash
+systemctl start docker
+systemctl enable docker
+```
+
+#### Step 3: Add the `mole` User to the `docker` Group
+
+To allow the `mole` user to manage Docker without `sudo`:
+
+```bash
+usermod -aG docker mole
+```
+
+Log out and log back in as the `mole` user for the group changes to take effect. Verify the `mole` user can run Docker commands without `sudo`:
+
+```bash
+su mole
+docker ps
+```
+
+#### Step 4: Install Docker Compose
+
+Run the following command to install Docker Compose:
+
+```bash
+dnf install docker-compose -y
+```
+
+Verify the installation:
+
+```bash
+docker-compose --version
+```
+
+---
 
 ### 5. Setting Up a Firewall (firewalld)
 
@@ -169,35 +204,38 @@ firewall-cmd --list-all
 
 This should show that SSH, HTTP, and HTTPS (next to services:) are allowed for incoming traffic.
 
-### 6. Install git
+---
+
+### 6. Install Git
 
 ```bash
 dnf install git
 ```
 
-## Choosing a different distribution
+---
+
+## Choosing a Different Distribution
 
 This guide is optimized for **Rocky Linux** and other **RHEL-based** distros (like **CentOS**, **AlmaLinux**, and **Fedora**). If you'd like to use a different distribution, here are the adjustments you’ll need to make:
 
 ### Adjustments for Ubuntu/Debian-based Distros:
 
 - **Package Manager**: Replace `dnf` with `apt` in the installation commands:
-  - For example, use `apt install caddy` instead of `dnf install caddy`.
-  
+  - For example, use `apt install docker` instead of `dnf install docker`.
+
 - **Firewall**: If using **UFW** instead of `firewalld`, replace `firewall-cmd` commands with UFW commands:
   - `ufw allow ssh`
   - `ufw allow http`
   - `ufw allow https`
 
-- **Podman**: Use the `apt` equivalent for installing Podman:
-  - `apt install podman` (or follow [Podman installation for Ubuntu](https://podman.io/getting-started/installation)).
+- **Docker Installation**:
+  - Use the `apt` commands to install Docker:
+    ```bash
+    apt update
+    apt install -y docker.io
+    ```
+  - Install Docker Compose:
+    ```bash
+    apt install -y docker-compose
+    ```
 
-- **Polkit**: On **Ubuntu/Debian-based** systems, **polkit** is typically used differently. You may need to manage permissions via **sudoers** instead of using `polkit` for user access. For example:
-  - Edit the `sudoers` file to allow the user to reload Caddy without a password:
-    ```bash
-    visudo
-    ```
-    Add this line to the file:
-    ```bash
-    username ALL=NOPASSWD: /usr/bin/systemctl reload caddy
-    ```

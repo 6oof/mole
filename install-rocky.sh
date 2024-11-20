@@ -58,16 +58,31 @@ systemctl enable --now caddy-api
 
 echo -e "${GREEN}Caddy installation complete.${RESET}"
 
-# Step 3: Install Podman
-echo -e "${CYAN}Installing Podman...${RESET}"
-dnf copr enable rhcontainerbot/podman-next -y
-dnf install podman -y
+# Step 3: Install Docker and Docker Compose
+echo -e "${CYAN}Installing Docker...${RESET}"
+dnf install -y dnf-plugins-core
+dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin -y
 
-# Verify Podman installation
-echo -e "${CYAN}Verifying Podman installation...${RESET}"
-podman --version
+# Enable and start Docker
+echo -e "${CYAN}Starting Docker...${RESET}"
+systemctl start docker
+systemctl enable docker
 
-echo -e "${GREEN}Podman installation complete.${RESET}"
+# Add mole user to Docker group
+echo -e "${CYAN}Adding mole user to Docker group...${RESET}"
+usermod -aG docker mole
+
+# Install Docker Compose
+echo -e "${CYAN}Installing Docker Compose...${RESET}"
+dnf install docker-compose -y
+
+# Verify Docker installation
+echo -e "${CYAN}Verifying Docker installation...${RESET}"
+docker --version
+docker-compose --version
+
+echo -e "${GREEN}Docker and Docker Compose installation complete.${RESET}"
 
 # Step 4: Configure Firewall
 echo -e "${CYAN}Setting up Firewall...${RESET}"
