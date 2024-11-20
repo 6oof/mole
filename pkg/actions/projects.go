@@ -208,7 +208,6 @@ func containsEnvEntry(content string) bool {
 type baseEnvData struct {
 	EnvPath    string
 	RootPath   string
-	Services   string
 	PName      string
 	AppKey     string
 	PortApp    int
@@ -231,9 +230,6 @@ func createProjectBaseEnv(project Project) error {
 
 # Project root path
 MOLE_ROOT_PATH={{.RootPath}}
-
-# Comma-separated list of services to start ("service-1,service-2").
-MOLE_SERVICES={{.Services}}
 
 # Three reserved ports for this deployment.
 MOLE_PORT_APP={{.PortApp}}
@@ -264,7 +260,6 @@ MOLE_DB_PASS={{.DbPassword}}
 	be := baseEnvData{
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		RootPath:   "/home/mole/projects/" + project.Name,
-		Services:   "app",
 		PName:      project.Name,
 		PortApp:    mp[0],
 		PortTwo:    mp[1],
