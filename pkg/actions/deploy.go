@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/zulubit/mole/pkg/consts"
 )
 
@@ -22,14 +21,17 @@ type projectDeployment struct {
 
 // RunDeployment executes the deployment process for a given project.
 func RunDeployment(projectNOI string) (string, error) {
-	ds, err := prepareDeployment(projectNOI)
+
+	p, err := FindProject(projectNOI)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to find project: %w", err)
 	}
 
-	err = gitPullProject(ds)
-	if err != nil {
-		return "", err
+	if !consts.Testing {
+		err = gitPullProject(p)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	err = TransformCompose(projectNOI)
@@ -41,7 +43,7 @@ func RunDeployment(projectNOI string) (string, error) {
 		return "", err
 	}
 
-	succ, err := runDeploymentScript(ds.projectName)
+	succ, err := runDeploymentScript(p)
 
 	return succ, nil
 }
@@ -49,12 +51,7 @@ func RunDeployment(projectNOI string) (string, error) {
 // runDeploymentScript executes the mole-deploy-ready.sh script for the given project.
 // It captures and returns the entire output (both stdout and stderr).
 // The output is also written to a log file in the deploy_logs directory.
-func runDeploymentScript(projectNOI string) (string, error) {
-	p, err := FindProject(projectNOI)
-	if err != nil {
-		return "", fmt.Errorf("failed to find project: %w", err)
-	}
-
+func runDeploymentScript(p Project) (string, error) {
 	scriptPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-deploy-ready.sh")
 	logsDir := path.Join(consts.GetBasePath(), "deploy_logs")
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
@@ -78,7 +75,7 @@ func runDeploymentScript(projectNOI string) (string, error) {
 
 	fmt.Println("Deploying, this might take a while...")
 
-	err = cmd.Run()
+	err := cmd.Run()
 	logFile := path.Join(logsDir, fmt.Sprintf("%s-%s-%s.log", timestamp, p.Name, status(err)))
 
 	writeLog(logFile, output.String())
@@ -106,11 +103,11 @@ func writeLog(filePath, content string) {
 }
 
 // gitPullProject pulls the latest changes from the Git repository.
-func gitPullProject(project projectDeployment) error {
+func gitPullProject(project Project) error {
 	var errOut, stOut bytes.Buffer
 
 	cmd := exec.Command("git", "pull")
-	cmd.Dir = path.Join(consts.GetBasePath(), "projects", project.projectName)
+	cmd.Dir = path.Join(consts.GetBasePath(), "projects", project.Name)
 	cmd.Stderr = &errOut
 	cmd.Stdout = &stOut
 
@@ -119,24 +116,4 @@ func gitPullProject(project projectDeployment) error {
 	}
 
 	return nil
-}
-
-// prepareDeployment initializes the project deployment configuration.
-func prepareDeployment(projectNOI string) (projectDeployment, error) {
-	p, err := FindProject(projectNOI)
-	if err != nil {
-		return projectDeployment{}, err
-	}
-
-	projectEnv := path.Join(consts.GetBasePath(), "projects", p.Name, ".env")
-	env, err := godotenv.Read(projectEnv)
-	if err != nil {
-		return projectDeployment{}, err
-	}
-
-	dp := projectDeployment{
-		envVars:     env,
-		projectName: p.Name,
-	}
-	return dp, nil
 }
