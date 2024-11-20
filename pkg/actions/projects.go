@@ -18,8 +18,6 @@ import (
 	"github.com/zulubit/mole/pkg/helpers"
 )
 
-// TODO: rework projects so they can only accept static or docker
-
 // Projects represents a collection of Project.
 type Projects struct {
 	Projects []Project `json:"projects"`

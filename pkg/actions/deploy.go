@@ -55,36 +55,32 @@ func runDeploymentScript(projectNOI string) (string, error) {
 		return "", fmt.Errorf("failed to find project: %w", err)
 	}
 
-	// Define paths
 	scriptPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-deploy-ready.sh")
 	logsDir := path.Join(consts.GetBasePath(), "deploy_logs")
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	// Ensure logs directory exists
 	if err := os.MkdirAll(logsDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create logs directory: %w", err)
 	}
 
-	// Check if the script exists
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		logFile := path.Join(logsDir, fmt.Sprintf("%s-%s-failure.log", timestamp, p.Name))
 		writeLog(logFile, "Deployment script not found")
 		return "", fmt.Errorf("deployment script not found at %s", scriptPath)
 	}
 
-	// Create a command to run the deployment script
 	cmd := exec.Command("/bin/bash", scriptPath)
 	cmd.Dir = path.Join(consts.GetBasePath(), "projects", p.Name) // Set the working directory to the project folder
 
 	var output bytes.Buffer
 	cmd.Stdout = &output
-	cmd.Stderr = &output // Capture both stdout and stderr
+	cmd.Stderr = &output
 
-	// Run the command
+	fmt.Println("Deploying, this might take a while...")
+
 	err = cmd.Run()
 	logFile := path.Join(logsDir, fmt.Sprintf("%s-%s-%s.log", timestamp, p.Name, status(err)))
 
-	// Write output to log file
 	writeLog(logFile, output.String())
 
 	if err != nil {

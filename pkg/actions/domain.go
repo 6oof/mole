@@ -18,8 +18,6 @@ import (
 	"github.com/zulubit/mole/pkg/helpers"
 )
 
-// TODO: sadly api is the way to go. this will take some doing
-// we should really collect all congigs in a single file and send them to the api to load
 type domainData struct {
 	Domain      string
 	Port        string

@@ -26,6 +26,5 @@ This will resolve your mole templates and run the deploy script.`,
 		}
 
 		fmt.Println(succ)
-		fmt.Println("Deployment succeeded.")
 	},
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/zulubit/mole/pkg/consts"
 )
 
-// TODO: change this test to be compatible with the new services
 func TestTransformTemplates(t *testing.T) {
 	consts.Testing = true
 

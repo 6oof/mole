@@ -135,22 +135,6 @@ su mole
 docker ps
 ```
 
-#### Step 4: Install Docker Compose
-
-Run the following command to install Docker Compose:
-
-```bash
-dnf install docker-compose -y
-```
-
-Verify the installation:
-
-```bash
-docker-compose --version
-```
-
----
-
 ### 5. Setting Up a Firewall (firewalld)
 
 To ensure your server is secure, you can set up a firewall using **firewalld**. This will restrict incoming traffic to SSH (port 22), HTTP (port 80), and HTTPS (port 443).

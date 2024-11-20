@@ -11,8 +11,6 @@ import (
 	"github.com/zulubit/mole/pkg/consts"
 )
 
-// TODO: keep the link part just repurpose it for generating mole-compose-ready.yml
-
 // transform mole-compose.ymal to mole-compose-ready.yaml
 func TransformCompose(projectNOI string) error {
 	p, err := FindProject(projectNOI)
@@ -24,9 +22,8 @@ func TransformCompose(projectNOI string) error {
 	destPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-compose-ready.yaml")
 	envFilePath := path.Join(consts.GetBasePath(), "projects", p.Name, ".env")
 
-	injectEnv(sourcePath, destPath, envFilePath)
+	return injectEnv(sourcePath, destPath, envFilePath)
 
-	return nil
 }
 
 // TransformDeploy generates "mole-deploy-ready.sh" by transforming "mole-deploy.sh"
@@ -64,8 +61,6 @@ func injectEnv(sourcePath, destPath, envFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to write output: %v", err)
 	}
-
-	fmt.Printf("Successfully generated: %s\n", destPath)
 
 	return nil
 }
