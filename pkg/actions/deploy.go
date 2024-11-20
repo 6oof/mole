@@ -134,11 +134,6 @@ func prepareDeployment(projectNOI string) (projectDeployment, error) {
 		return projectDeployment{}, err
 	}
 
-	_, err = os.ReadFile(path.Join(consts.BasePath, "projects", p.Name, "mole-deploy-ready.sh"))
-	if err != nil {
-		return projectDeployment{}, err
-	}
-
 	dp := projectDeployment{
 		envVars:     env,
 		projectName: p.Name,
