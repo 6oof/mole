@@ -9,22 +9,13 @@ import (
 )
 
 func init() {
-	RootCmd.AddCommand(templatesRootCmd)
-
-	templatesRootCmd.AddCommand(transformProjectCmd)
+	RootCmd.AddCommand(transformProjectCmd)
 }
 
-var templatesRootCmd = &cobra.Command{
-	Use:   "templates",
-	Short: "Manage project templates",
-	Long: `Manage project templates by providing tools to transform files such as 
-"mole-compose.yaml" and "mole-deploy.sh" into ready-to-use configurations. These transformations 
-inject environment variables from the project's .env file to create deployment-ready files.`,
-}
-
+// TODO: Add links to main readme
 var transformProjectCmd = &cobra.Command{
-	Use:   "transform [project name/id]",
-	Short: "Transform project service templates",
+	Use:   "templates [project name/id]",
+	Short: "Transform project mole templates",
 	Long: `Generates project-specific configuration files by transforming 
 "mole-compose.yaml" and "mole-deploy.sh" templates into ready-to-use files. 
 Environment variables from the project's .env file are injected during the transformation.`,

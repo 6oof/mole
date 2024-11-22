@@ -208,6 +208,7 @@ func containsEnvEntry(content string) bool {
 type baseEnvData struct {
 	EnvPath    string
 	RootPath   string
+	LogPath    string
 	PName      string
 	AppKey     string
 	PortApp    int
@@ -223,13 +224,15 @@ func createProjectBaseEnv(project Project) error {
 	envTemplate := `# Auto-generated environment configuration for {{.PName}}.
 # DO NOT DELETE OR MODIFY THIS SECTION.
 # This configuration is necessary for the project to work properly.
+# You can read more about this in the project README: github.com/zulubit/mole
 # Static path to this file on mole managed servers is:
 # {{.EnvPath}}
 
-# MOLE_PROJECT_NAME={{.PName}}
+MOLE_PROJECT_NAME={{.PName}}
 
 # Project root path
 MOLE_ROOT_PATH={{.RootPath}}
+MOLE_LOG_PATH={{.LogPath}}
 
 # Three reserved ports for this deployment.
 MOLE_PORT_APP={{.PortApp}}
@@ -245,6 +248,7 @@ MOLE_DB_USER={{.DbUser}}
 MOLE_DB_PASS={{.DbPassword}}
 
 # User-defined environment variables can be added below.
+# If a merge file was provided they will appear here too.
 # Add your own variables here:`
 
 	mp, err := FindAndReserveMolePorts()
@@ -260,6 +264,7 @@ MOLE_DB_PASS={{.DbPassword}}
 	be := baseEnvData{
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		RootPath:   "/home/mole/projects/" + project.Name,
+		LogPath:    "/home/mole/logs/" + project.Name,
 		PName:      project.Name,
 		PortApp:    mp[0],
 		PortTwo:    mp[1],
@@ -295,6 +300,10 @@ MOLE_DB_PASS={{.DbPassword}}
 	return nil
 }
 
+func createProjectLogDirectory(p Project) error {
+	return os.MkdirAll(path.Join(consts.GetBasePath(), "logs", p.Name), 0755)
+}
+
 // Merges .env.mole with the generated .env
 func readExampleEnv(projectName string) []byte {
 	path := path.Join(consts.BasePath, "projects", projectName, ".env.mole")
@@ -322,6 +331,11 @@ func CreateProject(newProject Project) error {
 	}
 
 	if err := createProjectBaseEnv(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
+		return err
+	}
+
+	if err := createProjectLogDirectory(newProject); err != nil {
 		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}

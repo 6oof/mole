@@ -9,6 +9,7 @@ var (
 	branchFlag      string
 	confirmFlag     bool
 	hardRerloadFlag bool
+	deployDown      bool
 )
 
 // flags for service actions

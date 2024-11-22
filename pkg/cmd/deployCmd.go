@@ -10,6 +10,7 @@ import (
 
 func init() {
 	RootCmd.AddCommand(deployCmd)
+	deployCmd.Flags().BoolVar(&deployDown, "down", false, "Try to run docker compose down on mole-compose-ready.yaml or fail.")
 }
 
 var deployCmd = &cobra.Command{
@@ -19,12 +20,21 @@ var deployCmd = &cobra.Command{
 This will resolve your mole templates and run the deploy script.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		succ, err := actions.RunDeployment(strings.Join(args, ""))
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
+		if !deployDown {
+			succ, err := actions.RunDeployment(strings.Join(args, ""))
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
 
-		fmt.Println(succ)
+			fmt.Println(succ)
+		} else if deployDown {
+			succ, err := actions.RundDeplyDown(strings.Join(args, ""))
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			fmt.Println(succ)
+		}
 	},
 }

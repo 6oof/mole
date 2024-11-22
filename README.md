@@ -5,6 +5,7 @@
 ## Navigation
 
 - [Server Installation Guide](/docs/install.md)
+- [Prepare Projects for Deployment](/docs/deployments.md)
 - [Mole CLI Documentation](/docs/cli/mole.md)
 
 ## TL;DR

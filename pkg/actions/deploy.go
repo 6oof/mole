@@ -48,6 +48,27 @@ func RunDeployment(projectNOI string) (string, error) {
 	return succ, nil
 }
 
+func RundDeplyDown(projectNOI string) (string, error) {
+	p, err := FindProject(projectNOI)
+	if err != nil {
+		return "", fmt.Errorf("failed to find project: %w", err)
+	}
+
+	cmd := exec.Command("docker", "compose", "-f", "mole-compose-ready.yaml", "down")
+	cmd.Dir = path.Join(consts.GetBasePath(), "projects", p.Name)
+
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+
+	err = cmd.Run()
+	if err != nil {
+		return output.String(), fmt.Errorf("Failed to down the project: %w", err)
+	}
+
+	return output.String(), nil
+}
+
 // runDeploymentScript executes the mole-deploy-ready.sh script for the given project.
 // It captures and returns the entire output (both stdout and stderr).
 // The output is also written to a log file in the deploy_logs directory.
