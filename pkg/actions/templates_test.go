@@ -28,16 +28,16 @@ func TestTransformTemplates(t *testing.T) {
 
 	sourceCompose := path.Join(projectDir, "mole-compose.yaml")
 	sourceDeploy := path.Join(projectDir, "mole-deploy.sh")
-	envFile := path.Join(projectDir, ".env")
 
-	err := os.WriteFile(sourceCompose, []byte("service_name: {{.SERVICE_NAME}}"), 0644)
+	err := os.WriteFile(sourceCompose, []byte("service_name: {{.PName}}"), 0644)
 	assert.Nil(t, err, "Failed to create mole-compose.yaml")
 
-	err = os.WriteFile(sourceDeploy, []byte("#!/bin/bash\necho {{.DEPLOY_SCRIPT_VAR}}"), 0755)
+	err = os.WriteFile(sourceDeploy, []byte("#!/bin/bash\necho {{.PName}}"), 0755)
 	assert.Nil(t, err, "Failed to create mole-deploy.sh")
 
-	err = os.WriteFile(envFile, []byte("SERVICE_NAME=test-service\nDEPLOY_SCRIPT_VAR=test-deploy"), 0644)
-	assert.Nil(t, err, "Failed to create .env file")
+	// Setup project secrets
+	err = createProjectSecretsJson(np)
+	assert.Nil(t, err, "Failed to setup project secrets")
 
 	// Test TransformCompose
 	err = TransformCompose(projectName)
@@ -48,7 +48,7 @@ func TestTransformTemplates(t *testing.T) {
 
 	content, err := os.ReadFile(destCompose)
 	assert.Nil(t, err, "Should be able to read generated mole-compose-ready.yaml")
-	assert.Contains(t, string(content), "service_name: test-service", "Transformed mole-compose.yaml should contain injected variables")
+	assert.Contains(t, string(content), "service_name: test-project", "Transformed mole-compose.yaml should contain injected variables")
 
 	// Test TransformDeploy
 	err = TransformDeploy(projectName)
@@ -59,5 +59,5 @@ func TestTransformTemplates(t *testing.T) {
 
 	content, err = os.ReadFile(destDeploy)
 	assert.Nil(t, err, "Should be able to read generated mole-deploy-ready.sh")
-	assert.Contains(t, string(content), "echo test-deploy", "Transformed mole-deploy.sh should contain injected variables")
+	assert.Contains(t, string(content), "echo test-project", "Transformed mole-deploy.sh should contain injected variables")
 }

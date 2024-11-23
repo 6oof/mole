@@ -10,13 +10,18 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/gofrs/flock"
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/zulubit/mole/pkg/consts"
 	"github.com/zulubit/mole/pkg/helpers"
 )
+
+// TODO: 1. make sure to make mole.sh mandatory
+// 2. fix all the names in mole secrets
+// 3. review all cmds to change wording
+// 4. fix the documentations now that nothing is necessary
+// 5. change all cobra errors to fatalf
 
 // Projects represents a collection of Project.
 type Projects struct {
@@ -177,22 +182,6 @@ func cloneProject(project Project) error {
 	}
 }
 
-// checkEnvGitignore checks if the .gitignore file in the project includes the mandatory .env entry.
-func checkEnvGitignore(project Project) error {
-	clonePath := path.Join(consts.GetBasePath(), "projects", project.Name, ".gitignore")
-
-	gi, err := os.ReadFile(clonePath)
-	if err != nil {
-		return errors.New("gitignore is missing from this project. This is mandatory for mole to work properly.")
-	}
-
-	if !containsEnvEntry(string(gi)) {
-		return errors.New(".gitignore does not include an entry for '.env'. This is mandatory for mole to work properly.")
-	}
-
-	return nil
-}
-
 // containsEnvEntry checks if the .gitignore content contains an entry for .env.
 func containsEnvEntry(content string) bool {
 	lines := strings.Split(content, "\n")
@@ -204,8 +193,8 @@ func containsEnvEntry(content string) bool {
 	return false
 }
 
-// baseEnvData holds the data for generating the environment configuration.
-type baseEnvData struct {
+// projectSecrets holds the data for generating the environment configuration.
+type projectSecrets struct {
 	EnvPath    string
 	RootPath   string
 	LogPath    string
@@ -219,38 +208,7 @@ type baseEnvData struct {
 	DbPassword string
 }
 
-// createProjectBaseEnv generates the base environment file for the project.
-func createProjectBaseEnv(project Project) error {
-	envTemplate := `# Auto-generated environment configuration for {{.PName}}.
-# DO NOT DELETE OR MODIFY THIS SECTION.
-# This configuration is necessary for the project to work properly.
-# You can read more about this in the project README: github.com/zulubit/mole
-# Static path to this file on mole managed servers is:
-# {{.EnvPath}}
-
-MOLE_PROJECT_NAME={{.PName}}
-
-# Project root path
-MOLE_ROOT_PATH={{.RootPath}}
-MOLE_LOG_PATH={{.LogPath}}
-
-# Three reserved ports for this deployment.
-MOLE_PORT_APP={{.PortApp}}
-MOLE_PORT_TWO={{.PortTwo}}
-MOLE_PORT_THREE={{.PortThree}}
-
-# Random string to be used as a key when necessary
-MOLE_APP_KEY={{.AppKey}}
-
-# Database credentials
-MOLE_DB_NAME={{.DbName}}
-MOLE_DB_USER={{.DbUser}}
-MOLE_DB_PASS={{.DbPassword}}
-
-# User-defined environment variables can be added below.
-# If a merge file was provided they will appear here too.
-# Add your own variables here:`
-
+func createProjectSecretsJson(project Project) error {
 	mp, err := FindAndReserveMolePorts()
 	if err != nil {
 		return err
@@ -261,7 +219,7 @@ MOLE_DB_PASS={{.DbPassword}}
 	dbUser := project.Name + "user" + helpers.GenerateRandomKey(6)
 	dbPass := helpers.GenerateRandomKey(24)
 
-	be := baseEnvData{
+	be := projectSecrets{
 		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
 		RootPath:   "/home/mole/projects/" + project.Name,
 		LogPath:    "/home/mole/logs/" + project.Name,
@@ -275,45 +233,68 @@ MOLE_DB_PASS={{.DbPassword}}
 		DbPassword: dbPass,
 	}
 
-	tmpl, err := template.New("env").Parse(envTemplate)
+	jbe, err := json.Marshal(be)
 	if err != nil {
-		return fmt.Errorf("failed to parse environment template: %w", err)
+		return err
 	}
 
-	var ft bytes.Buffer
-	if err := tmpl.Execute(&ft, be); err != nil {
-		return fmt.Errorf("failed to execute environment template: %w", err)
+	err = os.MkdirAll(path.Join(consts.GetBasePath(), "secrets"), 0755)
+	if err != nil {
+		return err
 	}
 
-	exampleEnv := readExampleEnv(be.PName)
-
-	if exampleEnv != nil {
-		ft.WriteString("\n\n")
-		ft.Write(exampleEnv)
-	}
-
-	efp := path.Join(consts.GetBasePath(), "projects", project.Name, ".env")
-	if err := os.WriteFile(efp, ft.Bytes(), 0644); err != nil {
-		return fmt.Errorf("failed to write environment file: %w", err)
+	err = os.WriteFile(path.Join(consts.GetBasePath(), "secrets", project.Name+".json"), jbe, 0644)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func createProjectLogDirectory(p Project) error {
-	return os.MkdirAll(path.Join(consts.GetBasePath(), "logs", p.Name), 0755)
+func ReadProjectSecrets(projectNOI string) (*projectSecrets, error) {
+	p, err := FindProject(projectNOI)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := os.ReadFile(path.Join(consts.GetBasePath(), "secrets", p.Name+".json"))
+	if err != nil {
+		return nil, err
+	}
+
+	var sec projectSecrets
+
+	err = json.Unmarshal(s, &sec)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sec, nil
 }
 
-// Merges .env.mole with the generated .env
-func readExampleEnv(projectName string) []byte {
-	path := path.Join(consts.BasePath, "projects", projectName, ".env.mole")
+// createProjectBaseEnv generates the base environment file for the project if .env.mole is present.
+func createProjectBaseEnv(project Project) error {
 
-	env, err := os.ReadFile(path)
+	epath := path.Join(consts.BasePath, "projects", project.Name, ".env.mole")
+
+	env, err := os.ReadFile(epath)
 	if err != nil {
 		return nil
 	}
 
-	return env
+	if env != nil {
+		var ft bytes.Buffer
+
+		ft.Write(env)
+
+		efp := path.Join(consts.GetBasePath(), "projects", project.Name, ".env")
+
+		if err := os.WriteFile(efp, ft.Bytes(), 0644); err != nil {
+			return fmt.Errorf("failed to write environment file: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // CreateProject creates a new project by cloning a repository and setting it up.
@@ -322,11 +303,6 @@ func CreateProject(newProject Project) error {
 	clonePath := path.Join(consts.GetBasePath(), "projects", newProject.Name)
 
 	if err := cloneProject(newProject); err != nil {
-		return err
-	}
-
-	if err := checkEnvGitignore(newProject); err != nil {
-		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
 
@@ -340,12 +316,26 @@ func CreateProject(newProject Project) error {
 		return err
 	}
 
+	if err := createProjectBaseEnv(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
+		return err
+	}
+
+	if err := createProjectSecretsJson(newProject); err != nil {
+		os.RemoveAll(clonePath) // Clean up on error
+		return err
+	}
+
 	if err := addProject(newProject); err != nil {
 		os.RemoveAll(clonePath) // Clean up on error
 		return err
 	}
 
 	return nil
+}
+
+func createProjectLogDirectory(p Project) error {
+	return os.MkdirAll(path.Join(consts.GetBasePath(), "logs", p.Name), 0755)
 }
 
 // EditProject updates the details of an existing project by its name or ID.

@@ -10,7 +10,7 @@ import (
 )
 
 var successDomainProxy = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    reverse_proxy 127.0.0.1:3000\n}"
-var successDomainStatic = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    root * /home/mole/projects/test/\n    file_server\n}"
+var successDomainStatic = "www.test.com {\n    redir https://test.com{uri}\n}\n\ntest.com {\n    root * /home/mole/projects/test/\n    file_server\n\n    encode gzip zstd\n\n    @htmlFiles {\n        file {\n            try_files {path}.html\n        }\n    }\n\n    @blockedFiles {\n        path *.env\n    }\n    respond @blockedFiles 403\n\n    rewrite @htmlFiles {path}.html\n}"
 
 func TestAddDomainProxy(t *testing.T) {
 	consts.Testing = true

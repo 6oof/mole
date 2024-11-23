@@ -122,6 +122,21 @@ func AddDomainStatic(projectNOI, domain, location string) error {
 {{.Domain}} {
     root * /home/mole/projects/{{.ProjectName}}/{{.Location}}
     file_server
+
+    encode gzip zstd
+
+    @htmlFiles {
+        file {
+            try_files {path}.html
+        }
+    }
+
+    @blockedFiles {
+        path *.env
+    }
+    respond @blockedFiles 403
+
+    rewrite @htmlFiles {path}.html
 }`
 
 	domainData := domainData{

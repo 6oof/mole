@@ -12,11 +12,6 @@ import (
 	"github.com/zulubit/mole/pkg/consts"
 )
 
-type projectDeployment struct {
-	envVars     map[string]string
-	projectName string
-}
-
 // TODO: check if transform is necessary for both
 
 // RunDeployment executes the deployment process for a given project.
@@ -27,17 +22,6 @@ func RunDeployment(projectNOI string) (string, error) {
 		return "", fmt.Errorf("failed to find project: %w", err)
 	}
 
-	if !consts.Testing {
-		err = gitPullProject(p)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	err = TransformCompose(projectNOI)
-	if err != nil {
-		return "", err
-	}
 	err = TransformDeploy(projectNOI)
 	if err != nil {
 		return "", err
@@ -121,20 +105,4 @@ func writeLog(filePath, content string) {
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 		fmt.Printf("Failed to write log file: %s, Error: %v\n", filePath, err)
 	}
-}
-
-// gitPullProject pulls the latest changes from the Git repository.
-func gitPullProject(project Project) error {
-	var errOut, stOut bytes.Buffer
-
-	cmd := exec.Command("git", "pull")
-	cmd.Dir = path.Join(consts.GetBasePath(), "projects", project.Name)
-	cmd.Stderr = &errOut
-	cmd.Stdout = &stOut
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("git pull failed: %w, %s", err, errOut.String())
-	}
-
-	return nil
 }

@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/json"
 	"os"
 	"path"
 	"testing"
@@ -32,34 +33,6 @@ func TestAddReadFindProject(t *testing.T) {
 	assert.Equal(t, fp.Name, np.Name, "project just added was found")
 }
 
-func TestCheckEnvGitignore(t *testing.T) {
-	consts.Testing = true
-
-	tmp := os.TempDir()
-	consts.BasePath = tmp
-	defer os.RemoveAll(tmp)
-
-	np := Project{
-		Name: "test-project",
-	}
-
-	addProject(np)
-
-	os.MkdirAll(path.Join(tmp, "projects", np.Name), 0755)
-
-	fp, _ := FindProject(np.Name)
-	err := checkEnvGitignore(fp)
-	assert.ErrorContains(t, err, "gitignore is missing from this project.", "error is thrown because .gitignore is missing")
-
-	os.WriteFile(path.Join(tmp, "projects", np.Name, ".gitignore"), []byte("asdf"), 0755)
-	err = checkEnvGitignore(fp)
-	assert.ErrorContains(t, err, "does not include an entry for '.env'", "error is thrown because .gitignore is missing")
-
-	os.WriteFile(path.Join(tmp, "projects", np.Name, ".gitignore"), []byte(".env"), 0755)
-	err = checkEnvGitignore(fp)
-	assert.Nil(t, err, "nothing is returned")
-}
-
 func TestCreateProjectBaseEnv(t *testing.T) {
 	consts.Testing = true
 
@@ -71,21 +44,31 @@ func TestCreateProjectBaseEnv(t *testing.T) {
 		Name: "test-project",
 	}
 
-	addProject(np)
+	err := addProject(np)
+	assert.Nil(t, err, "project was successfully added")
 
-	os.MkdirAll(path.Join(tmp, "projects", np.Name), 0755)
+	projectPath := path.Join(tmp, "projects", np.Name)
+	err = os.MkdirAll(projectPath, 0755)
+	assert.Nil(t, err, "project directory created")
 
-	fp, _ := FindProject(np.Name)
-	err := createProjectBaseEnv(fp)
+	envMoleContent := "MOLE_TEST_KEY=test_value\n"
+	err = os.WriteFile(path.Join(projectPath, ".env.mole"), []byte(envMoleContent), 0644)
+	assert.Nil(t, err, "example env.mole file created")
+
+	fp, err := FindProject(np.Name)
+	assert.Nil(t, err, "project found successfully")
+
+	err = createProjectBaseEnv(fp)
 	assert.Nil(t, err, "base env created")
 
-	f, err := os.ReadFile(path.Join(tmp, "projects", np.Name, ".env"))
-	assert.Nil(t, err, "env can be read")
-	assert.Contains(t, string(f), "MOLE_PROJECT_NAME=test-project", "env contains the correct type")
+	envPath := path.Join(projectPath, ".env")
+	envContent, err := os.ReadFile(envPath)
+	assert.Nil(t, err, "env file can be read")
 
+	assert.Contains(t, string(envContent), "MOLE_TEST_KEY=test_value", "env contains merged value from .env.mole")
 }
 
-func TestCreateProjectBaseEnvWithMerge(t *testing.T) {
+func TestCreateProjectSecretsJson(t *testing.T) {
 	consts.Testing = true
 
 	tmp := os.TempDir()
@@ -96,24 +79,26 @@ func TestCreateProjectBaseEnvWithMerge(t *testing.T) {
 		Name: "test-project",
 	}
 
-	addProject(np)
+	err := createProjectSecretsJson(np)
+	assert.Nil(t, err, "project secrets JSON created successfully")
 
-	projectPath := path.Join(tmp, "projects", np.Name)
-	os.MkdirAll(projectPath, 0755)
+	// Verify the secrets JSON file
+	secretsPath := path.Join(tmp, "secrets", np.Name+".json")
+	secretsContent, err := os.ReadFile(secretsPath)
+	assert.Nil(t, err, "secrets file can be read")
 
-	// Create the .env.mole file with a test entry
-	envMoleContent := "MOLE_TEST_KEY=test_value"
-	err := os.WriteFile(path.Join(projectPath, ".env.mole"), []byte(envMoleContent), 0644)
-	assert.Nil(t, err, "example env file created")
+	// Parse the secrets JSON
+	var secrets projectSecrets
+	err = json.Unmarshal(secretsContent, &secrets)
+	assert.Nil(t, err, "secrets JSON unmarshalled successfully")
 
-	fp, _ := FindProject(np.Name)
-	err = createProjectBaseEnv(fp)
-	assert.Nil(t, err, "base env created")
-
-	f, err := os.ReadFile(path.Join(projectPath, ".env"))
-	assert.Nil(t, err, "env can be read")
-
-	// Check that the .env contains both the generated and merged values
-	assert.Contains(t, string(f), "MOLE_PROJECT_NAME=test-project", "env contains the correct type")
-	assert.Contains(t, string(f), "MOLE_TEST_KEY=test_value", "env contains the merged value from .env.mole")
+	// Verify the contents
+	assert.Equal(t, "/home/mole/projects/test-project/.env", secrets.EnvPath, "EnvPath is correct")
+	assert.Equal(t, "/home/mole/projects/test-project", secrets.RootPath, "RootPath is correct")
+	assert.Equal(t, "/home/mole/logs/test-project", secrets.LogPath, "LogPath is correct")
+	assert.Equal(t, "test-project", secrets.PName, "PName is correct")
+	assert.NotEmpty(t, secrets.AppKey, "AppKey is generated")
+	assert.NotEmpty(t, secrets.DbName, "DbName is generated")
+	assert.NotEmpty(t, secrets.DbUser, "DbUser is generated")
+	assert.NotEmpty(t, secrets.DbPassword, "DbPassword is generated")
 }

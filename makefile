@@ -6,12 +6,13 @@ OUT_DEV := $(BUILD_DIR)/dev
 GOOS := linux
 GOARCH := amd64
 
+
 # Build the app for production
 buildprod:
 	@echo "Building $(APP_NAME) for production..."
 	mkdir -p $(OUTPUT_DIR)
 	GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o $(OUTPUT_DIR)/$(APP_NAME) \
-		-ldflags "-X 'github.com/zulubit/mole/pkg/consts.BasePath=/home/mole' -X 'github.com/zulubit/mole/pkg/consts.Prod=1'" ./cmd/cli
+		-ldflags "-X 'main.Prod=yes' -X 'github.com/zulubit/mole/pkg/consts.BasePath=/home/mole'" ./cmd/cli
 
 # Build the app for development
 builddev:

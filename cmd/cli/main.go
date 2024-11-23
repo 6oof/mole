@@ -12,9 +12,11 @@ import (
 	"github.com/zulubit/mole/pkg/consts"
 )
 
+var Prod = "no"
+
 func main() {
 	// Restrict execution to non-root users in production
-	if consts.Prod == 1 {
+	if Prod == "yes" {
 		if os.Geteuid() == 0 {
 			fmt.Println("Error: This CLI cannot be run as root to avoid permission issues.")
 			os.Exit(1)
