@@ -18,7 +18,6 @@ import (
 )
 
 // TODO:
-// 2. fix all the names in mole secrets
 // 3. review all cmds to change wording
 // 4. fix the documentations now that nothing is necessary
 // 5. change all cobra errors to fatalf
@@ -193,19 +192,19 @@ func containsEnvEntry(content string) bool {
 	return false
 }
 
-// projectSecrets holds the data for generating the environment configuration.
+// ProjectSecrets holds the data for generating the environment configuration.
 type projectSecrets struct {
-	EnvPath    string
-	RootPath   string
-	LogPath    string
-	PName      string
-	AppKey     string
-	PortApp    int
-	PortTwo    int
-	PortThree  int
-	DbName     string
-	DbUser     string
-	DbPassword string
+	EnvFilePath   string
+	RootDirectory string
+	LogDirectory  string
+	ProjectName   string
+	AppKey        string
+	PortApp       int
+	PortTwo       int
+	PortThree     int
+	DatabaseName  string
+	DatabaseUser  string
+	DatabasePass  string
 }
 
 func createProjectSecretsJson(project Project) error {
@@ -219,21 +218,21 @@ func createProjectSecretsJson(project Project) error {
 	dbUser := project.Name + "user" + helpers.GenerateRandomKey(6)
 	dbPass := helpers.GenerateRandomKey(24)
 
-	be := projectSecrets{
-		EnvPath:    "/home/mole/projects/" + project.Name + "/.env",
-		RootPath:   "/home/mole/projects/" + project.Name,
-		LogPath:    "/home/mole/logs/" + project.Name,
-		PName:      project.Name,
-		PortApp:    mp[0],
-		PortTwo:    mp[1],
-		PortThree:  mp[2],
-		AppKey:     key,
-		DbName:     dbName,
-		DbUser:     dbUser,
-		DbPassword: dbPass,
+	secrets := projectSecrets{
+		EnvFilePath:   "/home/mole/projects/" + project.Name + "/.env",
+		RootDirectory: "/home/mole/projects/" + project.Name,
+		LogDirectory:  "/home/mole/logs/" + project.Name,
+		ProjectName:   project.Name,
+		AppKey:        key,
+		PortApp:       mp[0],
+		PortTwo:       mp[1],
+		PortThree:     mp[2],
+		DatabaseName:  dbName,
+		DatabaseUser:  dbUser,
+		DatabasePass:  dbPass,
 	}
 
-	jbe, err := json.Marshal(be)
+	jbe, err := json.Marshal(secrets)
 	if err != nil {
 		return err
 	}

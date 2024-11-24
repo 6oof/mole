@@ -93,14 +93,14 @@ func TestCreateProjectSecretsJson(t *testing.T) {
 	assert.Nil(t, err, "secrets JSON unmarshalled successfully")
 
 	// Verify the contents
-	assert.Equal(t, "/home/mole/projects/test-project/.env", secrets.EnvPath, "EnvPath is correct")
-	assert.Equal(t, "/home/mole/projects/test-project", secrets.RootPath, "RootPath is correct")
-	assert.Equal(t, "/home/mole/logs/test-project", secrets.LogPath, "LogPath is correct")
-	assert.Equal(t, "test-project", secrets.PName, "PName is correct")
+	assert.Equal(t, "/home/mole/projects/test-project/.env", secrets.EnvFilePath, "EnvPath is correct")
+	assert.Equal(t, "/home/mole/projects/test-project", secrets.RootDirectory, "RootPath is correct")
+	assert.Equal(t, "/home/mole/logs/test-project", secrets.LogDirectory, "LogPath is correct")
+	assert.Equal(t, "test-project", secrets.ProjectName, "PName is correct")
 	assert.NotEmpty(t, secrets.AppKey, "AppKey is generated")
-	assert.NotEmpty(t, secrets.DbName, "DbName is generated")
-	assert.NotEmpty(t, secrets.DbUser, "DbUser is generated")
-	assert.NotEmpty(t, secrets.DbPassword, "DbPassword is generated")
+	assert.NotEmpty(t, secrets.DatabaseName, "DbName is generated")
+	assert.NotEmpty(t, secrets.DatabaseUser, "DbUser is generated")
+	assert.NotEmpty(t, secrets.DatabasePass, "DbPassword is generated")
 }
 
 func TestEnsureMoleSh(t *testing.T) {

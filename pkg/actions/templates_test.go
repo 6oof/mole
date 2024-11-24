@@ -29,10 +29,10 @@ func TestTransformTemplates(t *testing.T) {
 	sourceCompose := path.Join(projectDir, "mole-compose.yaml")
 	sourceDeploy := path.Join(projectDir, "mole.sh")
 
-	err := os.WriteFile(sourceCompose, []byte("service_name: {{.PName}}"), 0644)
+	err := os.WriteFile(sourceCompose, []byte("service_name: {{.ProjectName}}"), 0644)
 	assert.Nil(t, err, "Failed to create mole-compose.yaml")
 
-	err = os.WriteFile(sourceDeploy, []byte("#!/bin/bash\necho {{.PName}}"), 0755)
+	err = os.WriteFile(sourceDeploy, []byte("#!/bin/bash\necho {{.ProjectName}}"), 0755)
 	assert.Nil(t, err, "Failed to create mole.sh")
 
 	// Setup project secrets

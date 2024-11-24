@@ -54,14 +54,8 @@ func injectSecrets(sourcePath, destPath, projectName string) error {
 		return fmt.Errorf("failed to read template file %s: %v", sourcePath, err)
 	}
 
-	// Convert projectSecrets to a map for template rendering
-	secretsMap, err := secretsToMap(secrets)
-	if err != nil {
-		return fmt.Errorf("failed to convert secrets to map: %v", err)
-	}
-
 	// Render the template with secrets
-	renderedContent, err := renderTemplate(string(templateContent), secretsMap)
+	renderedContent, err := renderTemplate(string(templateContent), secrets)
 	if err != nil {
 		return err
 	}
@@ -76,7 +70,7 @@ func injectSecrets(sourcePath, destPath, projectName string) error {
 }
 
 // renderTemplate renders a Go template with secrets
-func renderTemplate(templateText string, data map[string]string) (string, error) {
+func renderTemplate(templateText string, data *projectSecrets) (string, error) {
 	tmpl, err := template.New("unit").Parse(templateText)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %v", err)
@@ -107,22 +101,4 @@ func readProjectSecrets(projectName string) (*projectSecrets, error) {
 	}
 
 	return &secrets, nil
-}
-
-// secretsToMap converts projectSecrets to a map for template rendering
-func secretsToMap(secrets *projectSecrets) (map[string]string, error) {
-	// Use reflection or manual mapping to convert struct fields to a map
-	return map[string]string{
-		"EnvPath":    secrets.EnvPath,
-		"RootPath":   secrets.RootPath,
-		"LogPath":    secrets.LogPath,
-		"PName":      secrets.PName,
-		"AppKey":     secrets.AppKey,
-		"PortApp":    fmt.Sprintf("%d", secrets.PortApp),
-		"PortTwo":    fmt.Sprintf("%d", secrets.PortTwo),
-		"PortThree":  fmt.Sprintf("%d", secrets.PortThree),
-		"DbName":     secrets.DbName,
-		"DbUser":     secrets.DbUser,
-		"DbPassword": secrets.DbPassword,
-	}, nil
 }
