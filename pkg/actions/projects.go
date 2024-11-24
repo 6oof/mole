@@ -17,7 +17,7 @@ import (
 	"github.com/zulubit/mole/pkg/helpers"
 )
 
-// TODO: 1. make sure to make mole.sh mandatory
+// TODO:
 // 2. fix all the names in mole secrets
 // 3. review all cmds to change wording
 // 4. fix the documentations now that nothing is necessary
@@ -297,12 +297,30 @@ func createProjectBaseEnv(project Project) error {
 	return nil
 }
 
+// mole.sh is mandatory for the project to be deployable by mole
+func ensureMoleSh(newProject Project) error {
+
+	shPath := path.Join(consts.BasePath, "projects", newProject.Name, "mole.sh")
+
+	_, err := os.ReadFile(shPath)
+	if err != nil {
+		return fmt.Errorf("Project does not conatain or is unable to read mole.sh: %v", err)
+	}
+
+	return nil
+}
+
 // CreateProject creates a new project by cloning a repository and setting it up.
 func CreateProject(newProject Project) error {
 
 	clonePath := path.Join(consts.GetBasePath(), "projects", newProject.Name)
 
 	if err := cloneProject(newProject); err != nil {
+		return err
+	}
+
+	// ensure project hase the mole.sh
+	if err := ensureMoleSh(newProject); err != nil {
 		return err
 	}
 

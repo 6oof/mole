@@ -27,13 +27,13 @@ func TestTransformTemplates(t *testing.T) {
 	os.MkdirAll(projectDir, 0755)
 
 	sourceCompose := path.Join(projectDir, "mole-compose.yaml")
-	sourceDeploy := path.Join(projectDir, "mole-deploy.sh")
+	sourceDeploy := path.Join(projectDir, "mole.sh")
 
 	err := os.WriteFile(sourceCompose, []byte("service_name: {{.PName}}"), 0644)
 	assert.Nil(t, err, "Failed to create mole-compose.yaml")
 
 	err = os.WriteFile(sourceDeploy, []byte("#!/bin/bash\necho {{.PName}}"), 0755)
-	assert.Nil(t, err, "Failed to create mole-deploy.sh")
+	assert.Nil(t, err, "Failed to create mole.sh")
 
 	// Setup project secrets
 	err = createProjectSecretsJson(np)
@@ -54,10 +54,10 @@ func TestTransformTemplates(t *testing.T) {
 	err = TransformDeploy(projectName)
 	assert.Nil(t, err, "TransformDeploy should complete without error")
 
-	destDeploy := path.Join(projectDir, "mole-deploy-ready.sh")
-	assert.FileExists(t, destDeploy, "mole-deploy-ready.sh should be generated")
+	destDeploy := path.Join(projectDir, "mole-ready.sh")
+	assert.FileExists(t, destDeploy, "mole-ready.sh should be generated")
 
 	content, err = os.ReadFile(destDeploy)
-	assert.Nil(t, err, "Should be able to read generated mole-deploy-ready.sh")
-	assert.Contains(t, string(content), "echo test-project", "Transformed mole-deploy.sh should contain injected variables")
+	assert.Nil(t, err, "Should be able to read generated mole-ready.sh")
+	assert.Contains(t, string(content), "echo test-project", "Transformed mole.sh should contain injected variables")
 }

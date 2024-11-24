@@ -102,3 +102,29 @@ func TestCreateProjectSecretsJson(t *testing.T) {
 	assert.NotEmpty(t, secrets.DbUser, "DbUser is generated")
 	assert.NotEmpty(t, secrets.DbPassword, "DbPassword is generated")
 }
+
+func TestEnsureMoleSh(t *testing.T) {
+	consts.Testing = true
+
+	tmp := os.TempDir()
+	consts.BasePath = tmp
+	defer os.RemoveAll(tmp)
+
+	np := Project{
+		Name: "test-project",
+	}
+
+	addProject(np)
+
+	projectPath := path.Join(tmp, "projects", np.Name)
+	os.MkdirAll(projectPath, 0755)
+
+	err := ensureMoleSh(np)
+	assert.ErrorContains(t, err, "Project does not conatain or is unable to read mole.sh", "error is returned because mole.sh is missing")
+
+	moleSh := "# silence"
+	os.WriteFile(path.Join(projectPath, "mole.sh"), []byte(moleSh), 0644)
+	err = ensureMoleSh(np)
+	assert.Nil(t, err, "mole.sh check passes without error")
+
+}

@@ -53,11 +53,11 @@ func RundDeplyDown(projectNOI string) (string, error) {
 	return output.String(), nil
 }
 
-// runDeploymentScript executes the mole-deploy-ready.sh script for the given project.
+// runDeploymentScript executes the mole-ready.sh script for the given project.
 // It captures and returns the entire output (both stdout and stderr).
 // The output is also written to a log file in the deploy_logs directory.
 func runDeploymentScript(p Project) (string, error) {
-	scriptPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-deploy-ready.sh")
+	scriptPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-ready.sh")
 	logsDir := path.Join(consts.GetBasePath(), "deploy_logs")
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 

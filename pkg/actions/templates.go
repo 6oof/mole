@@ -25,7 +25,7 @@ func TransformCompose(projectNOI string) error {
 	return injectSecrets(sourcePath, destPath, p.Name)
 }
 
-// TransformDeploy generates "mole-deploy-ready.sh" by transforming "mole-deploy.sh"
+// TransformDeploy generates "mole-ready.sh" by transforming "mole.sh"
 // using secrets from the project's secrets file.
 func TransformDeploy(projectNOI string) error {
 	p, err := FindProject(projectNOI)
@@ -33,8 +33,8 @@ func TransformDeploy(projectNOI string) error {
 		return err
 	}
 
-	sourcePath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-deploy.sh")
-	destPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-deploy-ready.sh")
+	sourcePath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole.sh")
+	destPath := path.Join(consts.GetBasePath(), "projects", p.Name, "mole-ready.sh")
 
 	return injectSecrets(sourcePath, destPath, p.Name)
 }

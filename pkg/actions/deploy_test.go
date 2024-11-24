@@ -40,11 +40,11 @@ func TestPrepareDeployment(t *testing.T) {
 	_, err = RunDeployment(projectName)
 	assert.NotNil(t, err, "deployment should fail due to missing .env file")
 
-	// Create a placeholder `mole-deploy-ready.sh` file
-	deployScriptPath := path.Join(projectDir, "mole-deploy.sh")
+	// Create a placeholder `mole-ready.sh` file
+	deployScriptPath := path.Join(projectDir, "mole.sh")
 	err = os.WriteFile(deployScriptPath, []byte("#!/bin/bash\necho 'Deployment script running'"), 0755)
 	if err != nil {
-		t.Fatalf("failed to write mole-deploy-ready.sh: %v", err)
+		t.Fatalf("failed to write mole-ready.sh: %v", err)
 	}
 
 	// Test successful deployment
