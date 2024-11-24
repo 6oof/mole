@@ -102,5 +102,7 @@ dnf install git -y || handle_error "Failed to install Git."
 
 echo -e "${GREEN}Git installation complete.${RESET}"
 
+rm -rf install-rocky.sh
+
 echo -e "${CYAN}Setup script completed successfully.${RESET}"
 

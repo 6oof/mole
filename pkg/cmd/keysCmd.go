@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zulubit/mole/pkg/actions"
 	"github.com/spf13/cobra"
+	"github.com/zulubit/mole/pkg/actions"
 )
 
 func init() {
@@ -38,14 +38,14 @@ used for accessing private repositories securely.
 If no deploy key is found, a new one will be generated automatically 
 and saved to the standard SSH key path. This deploy key enables 
 secure, automated interactions with external repositories.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := actions.FindOrCreateDeployKey()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 
 		fmt.Println(key)
+		return nil
 	},
 }
 
@@ -60,12 +60,12 @@ Ensure the key provided is correctly formatted, as it will be validated
 before being added to prevent errors. Only unique keys will be appended 
 to avoid duplicates in the authorized_keys file.`,
 	Args: cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		err := actions.AddAuthorizedKeys(strings.Join(args, " "))
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 		fmt.Println("Key added")
+		return nil
 	},
 }

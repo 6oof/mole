@@ -12,8 +12,6 @@ import (
 	"github.com/zulubit/mole/pkg/consts"
 )
 
-// TODO: check if transform is necessary for both
-
 // RunDeployment executes the deployment process for a given project.
 func RunDeployment(projectNOI string) (string, error) {
 

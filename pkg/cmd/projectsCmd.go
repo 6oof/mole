@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,6 @@ func init() {
 
 	projectsRootCmd.AddCommand(listProjectsCmd)
 	projectsRootCmd.AddCommand(findProjectCmd)
-	projectsRootCmd.AddCommand(projectEnvCmd)
 
 	addProjectCmd.Flags().StringVarP(&repositoryFlag, "repository", "r", "", "Repository URL *required")
 	addProjectCmd.MarkFlagRequired("repository")
@@ -57,14 +57,14 @@ var findProjectCmd = &cobra.Command{
 This command is case insensitive and returns the project details 
 to assist with further management commands.`,
 	Args: cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		p, err := actions.FindProject(strings.Join(args, " "))
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println(p.Stringify())
+		return nil
 	},
 }
 
@@ -75,12 +75,11 @@ var addProjectCmd = &cobra.Command{
 You must provide a name, repository URL, branch, and type. 
 Optionally, you can add a description.`,
 	Args: cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := strings.Join(args, " ")
 
 		if !helpers.ValidateProjectName(projectName) {
-			fmt.Println("Error: Project name can only contain lowercase letters, digits, underscores, and hyphens. It should start and end with a letter or a number")
-			return
+			return errors.New("Error: Project name can only contain lowercase letters, digits, underscores, and hyphens. It should start and end with a letter or a number")
 		}
 
 		np := actions.Project{
@@ -92,11 +91,11 @@ Optionally, you can add a description.`,
 
 		err := actions.CreateProject(np)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("New project successfully added")
+		return nil
 	},
 }
 
@@ -108,14 +107,14 @@ var deleteProjectCmd = &cobra.Command{
 This command marks the project as deleted and can also disable any 
 associated services to ensure clean removal.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		err := actions.DeleteProject(strings.Join(args, " "))
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Project with id " + args[0] + " was marked as deleted")
+		return nil
 	},
 }
 
@@ -125,28 +124,13 @@ var editProjectCmd = &cobra.Command{
 	Long: `Edits properties of a project identified by its name or ID. 
 You can change the description or branch, but not the repository, ID, or name.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		err := actions.EditProject(strings.Join(args, ""), descriptionFlag, branchFlag)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Project with id " + args[0] + " was updated")
-	},
-}
-
-var projectEnvCmd = &cobra.Command{
-	Use:   "dotenv [name/id]",
-	Short: "Edit project .env file",
-	Long: `Opens the project's .env file for editing in the nano editor. 
-This allows you to modify environment variables for the specified project.`,
-	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		err := actions.FindAndEditEnv(strings.Join(args, " "))
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
+		return nil
 	},
 }

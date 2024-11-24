@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,16 +44,16 @@ var setupCaddyCmd = &cobra.Command{
 	Long: `Setup initializes the primary Caddy configuration.
 	This command will overwrite any existing configuration file.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		e := strings.Join(args, " ")
 
 		err := actions.SetupDomains(e)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Domain setup complete. SSL issues will be reported to: " + e)
+		return nil
 	},
 }
 
@@ -63,14 +62,14 @@ var listTakenPortsCmd = &cobra.Command{
 	Short: "List active ports in use",
 	Long: `This command lists all active ports currently in use, 
 	retrieving the information using the "ss" command to display essential details.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		p, err := actions.PortReport()
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println(p)
+		return nil
 	},
 }
 
@@ -79,30 +78,18 @@ var reloadCaddyCmd = &cobra.Command{
 	Short: "Reload the Caddy service configuration",
 	Long: `Reload collects the main Caddyfile and all partial configurations, 
 	merges them, and sends them to the Caddy API.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		mainFilePath := "/home/mole/caddy/main.caddy"
 		domainsDir := "/home/mole/domains"
 		apiURL := "http://localhost:2019"
 
 		err := actions.ReloadCaddy(mainFilePath, domainsDir, apiURL)
 		if err != nil {
-			fmt.Printf("Failed to reload Caddy configuration: %v\n", err)
-			return
+			return err
 		}
 
 		fmt.Println("Caddy configuration reloaded successfully.")
-	},
-}
-
-var validateCaddyCmd = &cobra.Command{
-	Use:   "validate",
-	Short: "Validate the Caddy configuration file",
-	Long:  `This command verifies the integrity and correctness of the current Caddy configuration file.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		c := exec.Command("sh", "-c", "caddy validate --config /home/mole/caddy/main.caddy")
-		co, _ := c.CombinedOutput()
-
-		fmt.Println(string(co))
+		return nil
 	},
 }
 
@@ -119,16 +106,16 @@ var addProxyCaddyCmd = &cobra.Command{
 	Long: `This command creates a reverse proxy configuration in Caddy for the specified project.
 	if an empty on 0 port flag is set, MOLE_PORT_APP env variable will be used instead.`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		a := strings.Join(args, " ")
 
 		err := actions.AddDomainProxy(a, domainFlag, portFlag)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Reverse proxy added for: " + a)
+		return nil
 	},
 }
 
@@ -137,16 +124,16 @@ var addStaticCaddyCmd = &cobra.Command{
 	Short: "Add a static file server route",
 	Long:  `This command adds a static file server configuration in Caddy for serving files for the specified project.`,
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		a := strings.Join(args, " ")
 
 		err := actions.AddDomainStatic(a, domainFlag, locationFlag)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Static server created for: " + a)
+		return nil
 	},
 }
 
@@ -155,15 +142,15 @@ var deleteCaddyCmd = &cobra.Command{
 	Short: "Delete a domain from the Caddy configuration",
 	Long:  `This command attempts to locate and remove the specified project’s domain configuration file from Caddy.`,
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		a := strings.Join(args, " ")
 
 		err := actions.DeleteProjectDomain(a)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		fmt.Println("Caddy configuration deleted for: " + a + ".caddy")
+		return nil
 	},
 }
