@@ -18,7 +18,6 @@ import (
 )
 
 // TODO:
-// 4. fix the documentations now that nothing is necessary
 // 6. deal wiht action keys - create them on server, add them to known hosts, make commands to display them in the cli
 
 // Projects represents a collection of Project.

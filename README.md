@@ -12,7 +12,7 @@
 
 Mole is a micro PaaS inspired by **Laravel Forge**. Designed to get the most out of low-cost VPSes, Mole leverages **Docker Compose**, **SSH**, and **Caddy** for seamless deployment and management, all with minimal configuration.
 
-With Mole, you can deploy and manage your projects in a way that’s simple, scalable, and developer-friendly.
+Mole stands out with its flexible template system, allowing you to define and reuse dynamic configurations for Docker compose. This ensures you can deploy the same service on the same server seamlessly multiple times, avoiding conflicts and reducing setup time.
 
 Check out the navigation above to learn how to configure your server or deploy your project with Mole!
 

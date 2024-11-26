@@ -15,24 +15,17 @@ Mole is primarily designed to deploy two types of projects:
 
 To deploy a project with Mole, the following conditions must be met:
 
-1. The project is hosted in an accessible Git repository.
-2. The root of the project contains a `.gitignore` file.
-3. The `.gitignore` file includes the following entries:
-   - `.env`
-   - `mole-compose-ready.yaml`
-   - `mole-deploy-ready.sh`
-4. The root of the project contains:
-   - `mole-compose.yaml`
-   - `mole-deploy.sh`
+1. The project is a Git repository.
+2. The root of the project contains:
+   - `mole.sh`
 
 ### Directory Structure Example
 ```plaintext
 project-root/
-├── .gitignore           # Contains necessary exclusions
-├── mole-compose.yaml    # Docker Compose template
-├── mole-deploy.sh       # Deployment script template
-├── src/                 # Project source files
-└── README.md            # Documentation for the project
+├── mole.sh             # Deployment script template
+├── mole-compose.yaml   # Optional: Docker Compose file
+├── env.example         # Optional: Env file example to be copied to .env
+├── .gitignore          # Optional: If using .env it should be ignored
 ```
 
 A bootstrapping script to initialize your project with these requirements is available [here](#).
@@ -47,73 +40,52 @@ You can add a project to Mole by running the following command on the server as 
 mole projects add <project-name> -b <branch-name> -r <remote-repository-url>
 ```
 
-### Automatic `.env` Generation
+### Automatic `secrets` Generation
 
-When a project is successfully added, Mole automatically generates a `.env` file for the project. The file will look like this:
+When a project is successfully added, Mole automatically generates `project secrets` for the project. The secrets available are:
 
-```env
-# Auto-generated environment configuration for <project-name>.
-# DO NOT DELETE OR MODIFY THIS SECTION.
-# This configuration is necessary for the project to work properly.
-
-# Project name
-MOLE_PROJECT_NAME=<project-name>
-
-# Project root path
-MOLE_ROOT_PATH=/home/mole/projects/<project-name>
-
-# Reserved ports for this deployment
-MOLE_PORT_APP=9000
-MOLE_PORT_TWO=9001
-MOLE_PORT_THREE=9002
-
-# Random string used as a key when necessary
-MOLE_APP_KEY=2fqhh3GeY3s2O3HPj2Qj9H7P5XKZ6DLW
-
-# Database credentials
-MOLE_DB_NAME=wpdb0BfdDV9r
-MOLE_DB_USER=wpuserJyj7SP
-MOLE_DB_PASS=cYEDMVF4vYFaHTKrsht64lnw
-
-# User-defined environment variables can be added below:
-# Add your custom variables here:
+```txt
+	EnvFilePath   - Absolute path to the .env file
+	RootDirectory - Absolute Path to the project root
+	LogDirectory  - Absolute Path to the log directory
+	ProjectName   - Project Name given at mole add
+	AppKey        - Generated App Key if needed for the app
+	PortApp       - Primary port to be used
+	PortTwo       - Alternate port if needed
+	PortThree     - Alternate port if needed
+	DatabaseName  - Database Name if needed
+	DatabaseUser  - Database user if needed
+	DatabasePass  - Database password if needed
 ```
 
-#### Merging Custom Variables
-If you want to merge additional environment variables into the generated `.env` file, include them in a file named `.env.example` in the root of the repository. Mole will automatically merge them during deployment.
+### Creating a Base .env File
 
-Learn more about the `.env` file mole generates [here](#).
+If a `.env.example` file is found in the root of the repository, Mole will copy it directly to `.env` during deployment. This provides a simple way to include predefined environment variables in your project.
 
 ---
 
 ## Configurations as Templates
 
-Both `mole-compose.yaml` and `mole-deploy.sh` are treated as Go `text/template` files. When a deployment is triggered, they are transformed into:
+Both `mole-compose.yaml` and `mole.sh` are treated as Go `text/template` files. When a deployment is triggered, `mole.sh` is turned into:
 
-- `mole-compose-ready.yaml`
-- `mole-deploy-ready.sh`
+- `mole-ready.sh`
 
 ### Template Transformation
 
 During transformation, Mole reads the `.env` file and injects the values into the templates using Go's `{{.}}` syntax. For example:
 
-**Template: `mole-deploy.sh`**
+**Template: `mole.sh`**
 ```bash
 #!/bin/bash
 
-echo "{{.MOLE_PROJECT_NAME}}"
+echo "{{.ProjectName}}"
 ```
 
-**Transformed File: `mole-deploy-ready.sh`**
+**Transformed File: `mole-ready.sh`**
 ```bash
 #!/bin/bash
 
 echo "choosen-project-name"
-```
-
-This transformation assumes the `.env` file contains:
-```env
-MOLE_PROJECT_NAME=choosen-project-name
 ```
 
 #### No Replacements Necessary
@@ -123,6 +95,16 @@ If no template placeholders (`{{.}}`) are present, the files are simply copied o
 
 ## Deployment Cycle
 
+your `mole.sh` should probably look something like this:
+
+```bash
+#!/bin/bash
+
+git pull
+
+docker compose -f mole-compose-ready.yaml up -d --build
+```
+
 You can trigger deployments using the following command:
 
 ```bash
@@ -131,9 +113,8 @@ mole deploy <project-name-or-id>
 
 ### Steps in the Deployment Cycle
 
-1. **Git Pull**: Mole pulls the latest changes from the specified Git branch.
-2. **Template Transformation**: Mole processes all templates into their "ready" state (`mole-compose-ready.yaml` and `mole-deploy-ready.sh`).
-3. **Deployment Script Execution**: Mole runs the `mole-deploy-ready.sh` script to execute the deployment process.
+1. **Deployment script is tranfromed**: Mole transforms the `mole.sh` to `mole-ready.sh`.
+2. **Deployment script execution**: Mole runs the `mole-ready.sh` script to execute the deployment process.
 
 ---
 
