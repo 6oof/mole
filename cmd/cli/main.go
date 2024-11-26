@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/cobra/doc"
 	"github.com/zulubit/mole/pkg/cmd"
-	"github.com/zulubit/mole/pkg/consts"
 )
 
 var Prod = "no"
@@ -48,7 +47,7 @@ func main() {
 
 // Function to generate CLI documentation
 func generateDocs() {
-	err := doc.GenMarkdownTree(cmd.RootCmd, path.Join(consts.GetBasePath(), "docs", "cli"))
+	err := doc.GenMarkdownTree(cmd.RootCmd, path.Join("docs", "cli"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -11,10 +11,10 @@ import (
 func init() {
 	RootCmd.AddCommand(transformProjectCmd)
 
-	transformProjectCmd.AddCommand(transformProjectCmd)
+	transformProjectCmd.AddCommand(transformProjectShCmd)
+	transformProjectCmd.AddCommand(transformProjectComposeCmd)
 }
 
-// TODO: Add links to main readme
 var transformProjectCmd = &cobra.Command{
 	Use:   "templates",
 	Short: "Transform project mole templates",
