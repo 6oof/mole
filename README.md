@@ -6,6 +6,7 @@
 
 - [Server Installation Guide](/docs/install.md)
 - [Prepare Projects for Deployment](/docs/deployments.md)
+-- [Project secrets](/docs/secrets.md)
 - [Mole CLI Documentation](/docs/cli/mole.md)
 
 ## TL;DR

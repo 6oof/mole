@@ -59,6 +59,8 @@ When a project is successfully added, Mole automatically generates `project secr
 	DatabasePass  - Database password if needed
 ```
 
+You can read more about them [here](/docs/secrets.md).
+
 ### Creating a Base .env File
 
 If a `.env.example` file is found in the root of the repository, Mole will copy it directly to `.env` when the project is added. This provides a simple way to include predefined environment variables in your project.
