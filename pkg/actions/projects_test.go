@@ -52,8 +52,8 @@ func TestCreateProjectBaseEnv(t *testing.T) {
 	assert.Nil(t, err, "project directory created")
 
 	envMoleContent := "MOLE_TEST_KEY=test_value\n"
-	err = os.WriteFile(path.Join(projectPath, ".env.mole"), []byte(envMoleContent), 0644)
-	assert.Nil(t, err, "example env.mole file created")
+	err = os.WriteFile(path.Join(projectPath, ".env.example"), []byte(envMoleContent), 0644)
+	assert.Nil(t, err, "example env.example file created")
 
 	fp, err := FindProject(np.Name)
 	assert.Nil(t, err, "project found successfully")
@@ -65,7 +65,7 @@ func TestCreateProjectBaseEnv(t *testing.T) {
 	envContent, err := os.ReadFile(envPath)
 	assert.Nil(t, err, "env file can be read")
 
-	assert.Contains(t, string(envContent), "MOLE_TEST_KEY=test_value", "env contains merged value from .env.mole")
+	assert.Contains(t, string(envContent), "MOLE_TEST_KEY=test_value", "env contains merged value from .env.example")
 }
 
 func TestCreateProjectSecretsJson(t *testing.T) {

@@ -271,10 +271,10 @@ func ReadProjectSecrets(projectNOI string) (*projectSecrets, error) {
 	return &sec, nil
 }
 
-// createProjectBaseEnv generates the base environment file for the project if .env.mole is present.
+// createProjectBaseEnv generates the base environment file for the project if .env.example is present.
 func createProjectBaseEnv(project Project) error {
 
-	epath := path.Join(consts.BasePath, "projects", project.Name, ".env.mole")
+	epath := path.Join(consts.BasePath, "projects", project.Name, ".env.example")
 
 	env, err := os.ReadFile(epath)
 	if err != nil {

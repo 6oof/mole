@@ -43,6 +43,6 @@ Currently, I’m focused on improving and testing the CLI. The next steps includ
 - [ ] Gather Feedback
 - [ ] Detailed Testing
 - [ ] CLI Improvements
-- [ ] Streamline Installation Process
 - [ ] Premade Projects Registry (Quick Deploys)
+- [ ] API
 - [ ] Web Dashboard

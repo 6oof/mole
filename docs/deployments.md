@@ -80,7 +80,7 @@ MOLE_DB_PASS=cYEDMVF4vYFaHTKrsht64lnw
 ```
 
 #### Merging Custom Variables
-If you want to merge additional environment variables into the generated `.env` file, include them in a file named `.env.mole` in the root of the repository. Mole will automatically merge them during deployment.
+If you want to merge additional environment variables into the generated `.env` file, include them in a file named `.env.example` in the root of the repository. Mole will automatically merge them during deployment.
 
 Learn more about the `.env` file mole generates [here](#).
 
