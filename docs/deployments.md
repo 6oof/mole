@@ -26,6 +26,7 @@ project-root/
 ├── mole-compose.yaml   # Optional: Docker Compose file
 ├── env.example         # Optional: Env file example to be copied to .env
 ├── .gitignore          # Optional: If using .env it should be ignored
+...
 ```
 
 A bootstrapping script to initialize your project with these requirements is available [here](#).
@@ -60,7 +61,7 @@ When a project is successfully added, Mole automatically generates `project secr
 
 ### Creating a Base .env File
 
-If a `.env.example` file is found in the root of the repository, Mole will copy it directly to `.env` during deployment. This provides a simple way to include predefined environment variables in your project.
+If a `.env.example` file is found in the root of the repository, Mole will copy it directly to `.env` when the project is added. This provides a simple way to include predefined environment variables in your project.
 
 ---
 
@@ -72,7 +73,7 @@ Both `mole-compose.yaml` and `mole.sh` are treated as Go `text/template` files. 
 
 ### Template Transformation
 
-During transformation, Mole reads the `.env` file and injects the values into the templates using Go's `{{.}}` syntax. For example:
+During transformation, Mole reads the `project secrets` file and injects the values into the templates using Go's `{{.}}` syntax. For example:
 
 **Template: `mole.sh`**
 ```bash
