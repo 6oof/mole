@@ -17,7 +17,7 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy [project name/id]",
 	Short: "Deploy triggers project deployment",
 	Long: `Deploy triggers project deployment.
-This will resolve your mole templates and run the deploy script.`,
+This will transform your mole.sh and run it.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if !deployDown {

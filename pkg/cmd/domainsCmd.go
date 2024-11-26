@@ -24,7 +24,7 @@ func init() {
 
 	addStaticCaddyCmd.Flags().StringVarP(&domainFlag, "domain", "d", "", "Domain *required")
 	addStaticCaddyCmd.MarkFlagRequired("domain")
-	addStaticCaddyCmd.Flags().StringVarP(&locationFlag, "location", "l", "", "Location *required")
+	addStaticCaddyCmd.Flags().StringVarP(&locationFlag, "location", "l", "", "Location adds to the default path: /home/mole/projects/#project#/#provided location#")
 	addCaddyCmd.AddCommand(addStaticCaddyCmd)
 
 	domainsRootCmd.AddCommand(addCaddyCmd)
