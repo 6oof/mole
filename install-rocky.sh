@@ -102,6 +102,12 @@ dnf install git -y || handle_error "Failed to install Git."
 
 echo -e "${GREEN}Git installation complete.${RESET}"
 
+# Step 6: Install Nano
+echo -e "${CYAN}Installing Nano...${RESET}"
+dnf install nano -y || handle_error "Failed to install Nano."
+
+echo -e "${GREEN}Nano installation complete.${RESET}"
+
 rm -rf install-rocky.sh
 
 echo -e "${CYAN}Setup script completed successfully.${RESET}"
