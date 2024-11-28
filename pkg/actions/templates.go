@@ -39,7 +39,6 @@ func TransformDeploy(projectNOI string) error {
 	return injectSecrets(sourcePath, destPath, p.Name)
 }
 
-// TODO: optimize this method to not look for project twice
 // injectSecrets reads the secrets JSON file and injects its values into a template.
 func injectSecrets(sourcePath, destPath, projectName string) error {
 	// Read the project secrets
