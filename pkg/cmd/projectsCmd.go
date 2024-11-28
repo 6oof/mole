@@ -99,7 +99,6 @@ Optionally, you can add a description.`,
 	},
 }
 
-// TODO: delete needs to actually delete something
 var deleteProjectCmd = &cobra.Command{
 	Use:   "delete [name/id]",
 	Short: "Delete a project by name or ID",

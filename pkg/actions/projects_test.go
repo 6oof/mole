@@ -128,3 +128,63 @@ func TestEnsureMoleSh(t *testing.T) {
 	assert.Nil(t, err, "mole.sh check passes without error")
 
 }
+
+func TestDeleteProject(t *testing.T) {
+	consts.Testing = true
+
+	tmp := os.TempDir()
+	consts.BasePath = tmp
+	defer os.RemoveAll(tmp)
+
+	// Create and add a new project
+	np := Project{
+		Name: "test-project",
+	}
+
+	err := addProject(np)
+	assert.Nil(t, err, "project was successfully added")
+
+	// Create project directories and files
+	projectPath := path.Join(tmp, "projects", np.Name)
+	err = os.MkdirAll(projectPath, 0755)
+	assert.Nil(t, err, "project directory created")
+
+	logPath := path.Join(tmp, "logs", np.Name)
+	err = os.MkdirAll(logPath, 0755)
+	assert.Nil(t, err, "log directory created")
+
+	domainFilePath := path.Join(tmp, "domains", np.Name+".caddy")
+	err = os.MkdirAll(path.Dir(domainFilePath), 0755)
+	assert.Nil(t, err, "domain directory created")
+	err = os.WriteFile(domainFilePath, []byte("example caddy config"), 0644)
+	assert.Nil(t, err, "domain file created")
+
+	// Verify everything exists
+	_, err = os.Stat(projectPath)
+	assert.Nil(t, err, "project directory exists")
+	_, err = os.Stat(logPath)
+	assert.Nil(t, err, "log directory exists")
+	_, err = os.Stat(domainFilePath)
+	assert.Nil(t, err, "domain file exists")
+
+	// Call DeleteProject
+	createdProject, err := FindProject(np.Name)
+	assert.Nil(t, err, "project was found")
+	err = DeleteProject(createdProject.ProjectID)
+	assert.Nil(t, err, "project deleted successfully")
+
+	// Verify the project is removed
+	p, err := readProjectsFromFile()
+	assert.Nil(t, err, "projects can be read")
+	for _, pro := range p.Projects {
+		assert.NotEqual(t, pro.ProjectID, np.ProjectID, "deleted project is not in the list")
+	}
+
+	// Verify directories and files are deleted
+	_, err = os.Stat(projectPath)
+	assert.True(t, os.IsNotExist(err), "project directory is deleted")
+	_, err = os.Stat(logPath)
+	assert.True(t, os.IsNotExist(err), "log directory is deleted")
+	_, err = os.Stat(domainFilePath)
+	assert.True(t, os.IsNotExist(err), "domain file is deleted")
+}

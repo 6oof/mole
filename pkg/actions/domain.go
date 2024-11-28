@@ -229,7 +229,11 @@ func DeleteProjectDomain(projectName string) error {
 }
 
 // ReloadCaddy reads the main Caddyfile and partials, consolidates them, and sends to the API.
-func ReloadCaddy(mainFilePath, domainsDir, apiURL string) error {
+func ReloadCaddy() error {
+	mainFilePath := path.Join(consts.GetBasePath(), "caddy", "main.caddy")
+	domainsDir := path.Join(consts.GetBasePath(), "domains")
+	apiURL := "http://localhost:2019"
+
 	var caddyfileBuilder strings.Builder
 
 	// Read the main Caddyfile

@@ -382,7 +382,7 @@ func EditProject(proNOI, desc, branch string) error {
 	return p.saveProjectsToFile()
 }
 
-// DeleteProject removes a project from the list by its ID.
+// DeleteProject removes a project from the list by its ID, deletes the project directory, deletes logs and reloads Caddy
 func DeleteProject(proId string) error {
 	p, err := readProjectsFromFile()
 	if err != nil {
@@ -390,10 +390,12 @@ func DeleteProject(proId string) error {
 	}
 
 	found := false
+	foundProject := Project{}
 
 	for i, pro := range p.Projects {
 		if proId == pro.ProjectID {
 			found = true
+			foundProject = pro
 			p.Projects = append(p.Projects[:i], p.Projects[i+1:]...) // Remove the project from the slice.
 			break
 		}
@@ -401,6 +403,33 @@ func DeleteProject(proId string) error {
 
 	if !found {
 		return fmt.Errorf("project with ID %s not found", proId)
+	}
+
+	err = os.RemoveAll(path.Join(consts.GetBasePath(), "projects", foundProject.Name))
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(path.Join(consts.GetBasePath(), "logs", foundProject.Name))
+	if err != nil {
+		return err
+	}
+
+	domainPratial := path.Join(consts.GetBasePath(), "domains", foundProject.Name+".caddy")
+	_, err = os.ReadFile(domainPratial)
+	if err == nil {
+		err = os.Remove(domainPratial)
+		if err != nil {
+			return err
+		}
+
+		if !consts.Testing {
+			err = ReloadCaddy()
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 
 	return p.saveProjectsToFile()
