@@ -17,9 +17,6 @@ import (
 	"github.com/zulubit/mole/pkg/helpers"
 )
 
-// TODO:
-// 6. deal wiht action keys - create them on server, add them to known hosts, make commands to display them in the cli
-
 // Projects represents a collection of Project.
 type Projects struct {
 	Projects []Project `json:"projects"`

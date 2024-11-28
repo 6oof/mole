@@ -10,6 +10,7 @@ var (
 	confirmFlag     bool
 	hardRerloadFlag bool
 	deployDown      bool
+	keyName         string
 )
 
 // flags for service actions

@@ -1,18 +1,24 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/zulubit/mole/pkg/actions"
+	"github.com/zulubit/mole/pkg/helpers"
 )
 
 func init() {
 	RootCmd.AddCommand(keysRootCmd)
 
 	keysRootCmd.AddCommand(readDeployKeyCmd)
+	keysRootCmd.AddCommand(getActionsKeyCmd)
+
 	keysRootCmd.AddCommand(addAuthorizedKeyCmd)
+	addAuthorizedKeyCmd.Flags().StringVarP(&keyName, "name", "n", "", "name the key for future reference *required")
+	addAuthorizedKeyCmd.MarkFlagRequired("name")
 }
 
 var keysRootCmd = &cobra.Command{
@@ -61,11 +67,39 @@ before being added to prevent errors. Only unique keys will be appended
 to avoid duplicates in the authorized_keys file.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := actions.AddAuthorizedKeys(strings.Join(args, " "))
+		if !helpers.ValidateProjectName(keyName) {
+			return errors.New("Error: Key name can only contain lowercase letters, digits, underscores, and hyphens. It should start and end with a letter or a number")
+		}
+
+		err := actions.AddAuthorizedKeys(strings.Join(args, " "), keyName)
 		if err != nil {
 			return err
 		}
 		fmt.Println("Key added")
+		return nil
+	},
+}
+
+var getActionsKeyCmd = &cobra.Command{
+	Use:   "actions",
+	Short: "Retrieve or create the SSH key for actions and add it to authorized_keys",
+	Long: `The "actions" command generates or retrieves the private SSH key used for 
+server-to-server communication or other automated tasks. 
+
+If no key is found, a new private key (actions_rsa) and its corresponding 
+public key (actions_rsa.pub) are created and stored in the standard SSH 
+directory. The public key is automatically added to the authorized_keys 
+file, allowing the associated private key to be used for secure access.
+
+This command is particularly useful for enabling secure access for CI/CD 
+pipelines, automated scripts, or other server-to-server operations.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		key, err := actions.FindOrCreateActionsKey()
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(key)
 		return nil
 	},
 }
