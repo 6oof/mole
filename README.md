@@ -45,6 +45,7 @@ Currently, I’m focused on improving and testing the CLI. The next steps includ
 - [ ] Gather Feedback
 - [ ] Detailed Testing
 - [ ] CLI Improvements
-- [ ] Premade Projects Registry (Quick Deploys)
+- [ ] Mole templates Registry (Quick Deploys)
+- [ ] TUI (bubbletea)
 - [ ] API
 - [ ] Web Dashboard

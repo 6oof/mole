@@ -172,7 +172,6 @@ services:
       - NODE_ENV=production
       - APP_KEY={{.AppKey}} # Inject the generated app key
       - DATABASE_URL=postgres://{{.DatabaseUser}}:{{.DatabasePass}}@db/{{.DatabaseName}}
-      - LOG_DIRECTORY={{.LogDirectory}} # Path to the log directory
     volumes:
       - {{.LogDirectory}}:/var/log/app # Log storage
       - {{.EnvFilePath}}:/app/.env # Inject the .env file
